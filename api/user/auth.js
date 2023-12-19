@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-	const {email, password} = req.body;
+	const {email, password, remember} = req.body;
 	
 	const usersCollection = await client.db('main').collection('users');
 	const users = await usersCollection.find({email}).toArray();
@@ -56,7 +56,7 @@ router.post('/login', async (req, res) => {
 		bcrypt.compare(password, users[0].password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
 				
 				refreshTokens.push(refreshToken);
 				
