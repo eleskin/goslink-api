@@ -24,7 +24,7 @@ router.post('/register', async (req, res) => {
 		const isExistUser = Boolean(users.length);
 		
 		if (isExistUser) {
-			res.status(400).send({
+			return res.status(400).send({
 				message: 'A user with this email address already exists',
 			});
 		} else {
@@ -33,7 +33,7 @@ router.post('/register', async (req, res) => {
 			
 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
 			
-			res.status(201).send({accessToken, refreshToken});
+			return res.status(201).send({accessToken, refreshToken});
 		}
 	});
 });
@@ -47,11 +47,10 @@ router.post('/login', async (req, res) => {
 	const isExistUser = Boolean(users.length);
 	
 	if (!isExistUser) {
-		res.status(400).send({
+		return res.status(400).send({
 			message: 'There is no user with this email address',
 		});
 	} else {
-		
 		bcrypt.compare(password, users?.[0]?.password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
@@ -59,12 +58,12 @@ router.post('/login', async (req, res) => {
 				
 				usersCollection.replaceOne({email}, {...users?.[0], refreshToken});
 				
-				res.status(200).send({
+				return res.status(200).send({
 					accessToken,
 					refreshToken,
 				});
 			} else {
-				res.status(400).send({
+				return res.status(400).send({
 					message: 'Invalid password',
 				});
 			}
@@ -72,56 +71,37 @@ router.post('/login', async (req, res) => {
 	}
 });
 
-router.post('/refresh-token', (req, res) => {
-	const {token} = req.body;
-	
-	if (!token) {
-		return res.sendStatus(401);
-	}
-	
-	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-		if (err) {
-			return res.sendStatus(403);
-		}
-		
-		const usersCollection = await client.db('main').collection('users');
-		const users = await usersCollection.find({email: user.email}).toArray();
-		
-		if (!users?.[0]?.refreshToken === token) {
-			return res.sendStatus(403);
-		}
-		
-		const accessToken = jwt.sign(
-			{email: user.email},
-			process.env.ACCESS_TOKEN_SECRET,
-			{expiresIn: '1h'},
-		);
-		
-		res.status(200).send({accessToken});
-	});
-});
-
 router.post('/user', (req, res) => {
-	const {token} = req.body;
+	const {accessToken, refreshToken} = req.body;
 	
-	if (!token) {
-		return res.sendStatus(401);
+	if (!accessToken || !refreshToken) {
+		return res.status(401).send();
 	}
 	
-	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
 		if (err) {
-			return res.sendStatus(403);
+			return res.status(401).send();
 		}
 		
 		const usersCollection = await client.db('main').collection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
 		
-		res.status(200).send({
-			user: {
-				name: users?.[0]?.name,
-				username: users?.[0]?.username,
-				email: users?.[0]?.email,
-			},
+		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+			if (err) {
+				return res.status(403).send();
+			}
+			
+			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
+				return res.status(403).send();
+			}
+			
+			const accessToken = jwt.sign(
+				{email: user.email},
+				process.env.ACCESS_TOKEN_SECRET,
+				{expiresIn: '1h'},
+			);
+			
+			return res.status(200).send({accessToken});
 		});
 	});
 });
@@ -130,12 +110,12 @@ router.post('/logout', (req, res) => {
 	const {token} = req.body;
 	
 	if (!token) {
-		return res.sendStatus(401);
+		return res.status(401).send();
 	}
 	
 	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
 		if (err) {
-			return res.sendStatus(403);
+			return res.status(403).send();
 		}
 		
 		const usersCollection = await client.db('main').collection('users');
@@ -143,10 +123,8 @@ router.post('/logout', (req, res) => {
 		
 		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});
 		
-		res.status(200).send('Logout successful');
+		return res.status(200).send('Logout successful');
 	});
-	
-	return res.sendStatus(401);
 });
 
 module.exports = router;
