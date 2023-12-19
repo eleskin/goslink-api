@@ -101,6 +101,31 @@ router.post('/refresh-token', (req, res) => {
 	});
 });
 
+router.post('/user', (req, res) => {
+	const {token} = req.body;
+	
+	if (!token) {
+		return res.sendStatus(401);
+	}
+	
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+		if (err) {
+			return res.sendStatus(403);
+		}
+		
+		const usersCollection = await client.db('main').collection('users');
+		const users = await usersCollection.find({email: user.email}).toArray();
+		
+		res.status(200).send({
+			user: {
+				name: users?.[0]?.name,
+				username: users?.[0]?.username,
+				email: users?.[0]?.email,
+			},
+		});
+	});
+});
+
 router.post('/logout', (req, res) => {
 	const {token} = req.body;
 	
@@ -116,7 +141,7 @@ router.post('/logout', (req, res) => {
 		const usersCollection = await client.db('main').collection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
 		
-		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null})
+		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});
 		
 		res.status(200).send('Logout successful');
 	});
