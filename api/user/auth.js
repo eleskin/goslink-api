@@ -34,6 +34,9 @@ router.post('/register', async (req, res) => {
 			
 			const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
 			const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+			
+			refreshTokens.push(refreshToken);
+			
 			res.status(201).send({accessToken, refreshToken});
 		}
 	});
