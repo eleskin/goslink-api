@@ -14,8 +14,6 @@ const client = new MongoClient(process.env.MONGODB_URL, {
 	},
 });
 
-let refreshTokens = [];
-
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
 	
@@ -30,12 +28,10 @@ router.post('/register', async (req, res) => {
 				message: 'A user with this email address already exists',
 			});
 		} else {
-			await usersCollection.insertOne({...req.body, password: hash});
-			
 			const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
 			const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
 			
-			refreshTokens.push(refreshToken);
+			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
 			
 			res.status(201).send({accessToken, refreshToken});
 		}
@@ -56,12 +52,12 @@ router.post('/login', async (req, res) => {
 		});
 	} else {
 		
-		bcrypt.compare(password, users[0].password, (err, result) => {
+		bcrypt.compare(password, users?.[0]?.password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
 				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
 				
-				refreshTokens.push(refreshToken);
+				usersCollection.replaceOne({email}, {...users?.[0], refreshToken});
 				
 				res.status(200).send({
 					accessToken,
@@ -76,19 +72,22 @@ router.post('/login', async (req, res) => {
 	}
 });
 
-router.post('/token', (req, res) => {
+router.post('/refresh-token', (req, res) => {
 	const {token} = req.body;
 	
 	if (!token) {
 		return res.sendStatus(401);
 	}
 	
-	if (!refreshTokens.includes(token)) {
-		return res.sendStatus(403);
-	}
-	
-	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
 		if (err) {
+			return res.sendStatus(403);
+		}
+		
+		const usersCollection = await client.db('main').collection('users');
+		const users = await usersCollection.find({email: user.email}).toArray();
+		
+		if (!users?.[0]?.refreshToken === token) {
 			return res.sendStatus(403);
 		}
 		
@@ -104,9 +103,25 @@ router.post('/token', (req, res) => {
 
 router.post('/logout', (req, res) => {
 	const {token} = req.body;
-	refreshTokens = refreshTokens.filter((refreshToken) => refreshToken !== token);
 	
-	res(200).send('Logout successful');
+	if (!token) {
+		return res.sendStatus(401);
+	}
+	
+	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+		if (err) {
+			return res.sendStatus(403);
+		}
+		
+		const usersCollection = await client.db('main').collection('users');
+		const users = await usersCollection.find({email: user.email}).toArray();
+		
+		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null})
+		
+		res.status(200).send('Logout successful');
+	});
+	
+	return res.sendStatus(401);
 });
 
 module.exports = router;
