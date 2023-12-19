@@ -10,21 +10,23 @@ router.post('', async (req, res) => {
 	const messages = await messagesCollection
 		.find({username, conversationalist})
 		.toArray();
-
+	
 	res.send({
 		messages,
 	});
 });
 
 router.post('/add', async (req, res) => {
-	const {username, conversationalist} = req.body;
+	const {username} = req.body;
+	
+	const usersCollection = await client.db('main').collection('users');
+	const users = await usersCollection.find({username}).toArray();
 	
 	const messagesCollection = await client.db('main').collection('messages');
-	await messagesCollection.insertOne(req.body);
-	const messages = await messagesCollection.find({username, conversationalist}).toArray()
+	const message = await messagesCollection.insertOne({...req.body, name: users?.[0]?.name});
 	
 	res.send({
-		messages,
+		message,
 	});
 });
 
