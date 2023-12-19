@@ -101,7 +101,14 @@ router.post('/user', (req, res) => {
 				{expiresIn: '1h'},
 			);
 			
-			return res.status(200).send({accessToken});
+			return res.status(200).send({
+				accessToken,
+				user: {
+					name: users?.[0]?.name,
+					username: users?.[0]?.username,
+					email: users?.[0]?.email,
+				},
+			});
 		});
 	});
 });
