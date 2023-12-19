@@ -10,7 +10,7 @@ dotenv.config();
 
 const apiUserAuthRouter = require('./api/user/auth');
 const apiUserSearchRouter = require('./api/user/search');
-// const apiChatRouter = require('./api/chat');
+const apiChatMessagesRouter = require('./api/chat/messages');
 
 const app = express();
 
@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/user/auth', apiUserAuthRouter);
 app.use('/api/user/search', apiUserSearchRouter);
-// app.use('/api/chat', apiChatRouter);
+app.use('/api/chat/messages', apiChatMessagesRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
