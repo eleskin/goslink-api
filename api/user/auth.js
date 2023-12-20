@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/user', (req, res) => {
-	const {accessToken, refreshToken, conversationalist} = req.body;
+	const {accessToken, refreshToken} = req.body;
 	
 	if (!accessToken || !refreshToken) {
 		return res.status(401).send();
@@ -77,15 +77,6 @@ router.post('/user', (req, res) => {
 		
 		const usersCollection = await client.db('main').collection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
-		
-		const messagesCollection = await client.db('main').collection('messages');
-		const messages = [...(await messagesCollection.find({
-			username: users?.[0]?.username,
-			conversationalist,
-		}).toArray()), ...(await messagesCollection.find({
-			username: conversationalist,
-			conversationalist: users?.[0]?.username,
-		}).toArray())];
 		
 		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
 			if (err) {
@@ -109,7 +100,6 @@ router.post('/user', (req, res) => {
 					username: users?.[0]?.username,
 					email: users?.[0]?.email,
 				},
-				messages,
 			});
 		});
 	});
