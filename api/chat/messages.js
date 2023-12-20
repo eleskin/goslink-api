@@ -2,6 +2,7 @@ const express = require('express');
 const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
+const getMessages = require('../../services/functions/getMessages');
 
 const router = express.Router();
 const app = express();
@@ -11,17 +12,25 @@ const users = new Set();
 
 wss.on('connection', async (ws) => {
 	await client.connect();
-	await ws.send(JSON.stringify(await client.db('main').collection('messages').find().toArray()));
 	users.add(ws);
-
-	ws.on('message', async (data) => {
-		console.log(JSON.parse(data));
-		await ws.send(JSON.stringify(JSON.parse(data)));
-		const _data = JSON.parse(data);
-		await client.db('main').collection('messages').insertOne(_data);
-
-		for(let user of users) {
-			user.send(JSON.stringify(await client.db('main').collection('messages').find().toArray()));
+	
+	ws.on('message', async (_data) => {
+		const data = JSON.parse(_data);
+		const messagesCollection = await client.db('main').collection('messages');
+		
+		if (data.method === 'GET') {
+			console.log(data.method);
+		} else if (data.method === 'POST') {
+			await messagesCollection.insertOne({
+				username: data.username,
+				conversationalist: data.conversationalist,
+				message: data.message,
+			});
+		}
+		
+		const messages = JSON.stringify(await getMessages(data.username, data.conversationalist, messagesCollection));
+		for(const user of users) {
+			user.send(messages);
 		}
 	});
 });

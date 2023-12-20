@@ -1,18 +1,10 @@
 const express = require('express');
-const {ServerApiVersion, MongoClient} = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const client = require('../../services/client');
 
 const router = express.Router();
 const saltRounds = 10;
-
-const client = new MongoClient(process.env.MONGODB_URL, {
-	serverApi: {
-		version: ServerApiVersion.v1,
-		strict: true,
-		deprecationErrors: true,
-	},
-});
 
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
