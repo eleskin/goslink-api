@@ -1,33 +1,31 @@
 const express = require('express');
 const client = require('../../services/client');
+const http = require('http');
+const WebSocket = require('ws');
 
 const router = express.Router();
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({server});
+const users = new Set();
 
-router.post('', async (req, res) => {
-	const {username, conversationalist} = req.body;
-	
-	const messagesCollection = await client.db('main').collection('messages');
-	const messages = await messagesCollection
-		.find({username, conversationalist})
-		.toArray();
-	
-	res.send({
-		messages,
+wss.on('connection', async (ws) => {
+	await client.connect();
+	await ws.send(JSON.stringify(await client.db('main').collection('messages').find().toArray()));
+	users.add(ws);
+
+	ws.on('message', async (data) => {
+		console.log(JSON.parse(data));
+		await ws.send(JSON.stringify(JSON.parse(data)));
+		const _data = JSON.parse(data);
+		await client.db('main').collection('messages').insertOne(_data);
+
+		for(let user of users) {
+			user.send(JSON.stringify(await client.db('main').collection('messages').find().toArray()));
+		}
 	});
 });
 
-router.post('/add', async (req, res) => {
-	const {username} = req.body;
-	
-	const usersCollection = await client.db('main').collection('users');
-	const users = await usersCollection.find({username}).toArray();
-	
-	const messagesCollection = await client.db('main').collection('messages');
-	const message = await messagesCollection.insertOne({...req.body, name: users?.[0]?.name});
-	
-	res.send({
-		message,
-	});
-});
+server.listen(8000);
 
 module.exports = router;
