@@ -6,6 +6,49 @@ const client = require('../../services/client');
 const router = express.Router();
 const saltRounds = 10;
 
+router.post('/', (req, res) => {
+	const {refreshToken} = req.body;
+	const accessToken = req.headers.authorization;
+	
+	if (!accessToken || !refreshToken) {
+		return res.status(401).send();
+	}
+	
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+		if (err) {
+			return res.status(401).send();
+		}
+		
+		const usersCollection = await client.db('main').collection('users');
+		const users = await usersCollection.find({email: user.email}).toArray();
+		
+		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+			if (err) {
+				return res.status(403).send();
+			}
+			
+			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
+				return res.status(403).send();
+			}
+			
+			const accessToken = jwt.sign(
+				{email: user.email},
+				process.env.ACCESS_TOKEN_SECRET,
+				{expiresIn: '1h'},
+			);
+			
+			return res.status(200).send({
+				accessToken,
+				user: {
+					name: users?.[0]?.name,
+					username: users?.[0]?.username,
+					email: users?.[0]?.email,
+				},
+			});
+		});
+	});
+});
+
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
 	
@@ -61,48 +104,6 @@ router.post('/login', async (req, res) => {
 			}
 		});
 	}
-});
-
-router.post('/user', (req, res) => {
-	const {accessToken, refreshToken} = req.body;
-	
-	if (!accessToken || !refreshToken) {
-		return res.status(401).send();
-	}
-	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-		if (err) {
-			return res.status(401).send();
-		}
-		
-		const usersCollection = await client.db('main').collection('users');
-		const users = await usersCollection.find({email: user.email}).toArray();
-		
-		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-			if (err) {
-				return res.status(403).send();
-			}
-			
-			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
-				return res.status(403).send();
-			}
-			
-			const accessToken = jwt.sign(
-				{email: user.email},
-				process.env.ACCESS_TOKEN_SECRET,
-				{expiresIn: '1h'},
-			);
-			
-			return res.status(200).send({
-				accessToken,
-				user: {
-					name: users?.[0]?.name,
-					username: users?.[0]?.username,
-					email: users?.[0]?.email,
-				},
-			});
-		});
-	});
 });
 
 router.post('/logout', (req, res) => {

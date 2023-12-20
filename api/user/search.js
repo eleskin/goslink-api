@@ -3,8 +3,8 @@ const client = require('../../services/client');
 
 const router = express.Router();
 
-router.post('', async (req, res) => {
-	const {username} = req.body;
+router.get('/', async (req, res) => {
+	const {username} = req.query;
 	
 	const usersCollection = await client.db('main').collection('users');
 	const users = await usersCollection.find({username}).toArray();
