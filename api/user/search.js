@@ -1,9 +1,10 @@
 const express = require('express');
 const client = require('../../services/client');
+const authenticateJWT = require('../../services/functions/authenticateJWT');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', authenticateJWT, async (req, res) => {
 	const {username} = req.query;
 	
 	const usersCollection = await client.db('main').collection('users');
