@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const client = require('../../services/client');
+const authenticateJWT = require('../../services/functions/authenticateJWT');
 
 const router = express.Router();
 const saltRounds = 10;
@@ -119,23 +120,23 @@ router.post('/login', async (req, res) => {
 	}
 });
 
-router.post('/logout', (req, res) => {
-	const {token} = req.body;
+router.post('/logout', authenticateJWT, (req, res) => {
+	const {accessToken} = req.body;
 	
-	if (!token) {
+	if (!accessToken) {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
 		if (err) {
 			return res.status(403).send();
 		}
 		
 		const usersCollection = await client.db('main').collection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
-		
+
 		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});
-		
+
 		return res.status(200).send('Logout successful');
 	});
 });
