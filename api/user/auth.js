@@ -14,18 +14,30 @@ router.post('/', (req, res) => {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err) => {
 		if (err) {
 			return res.status(401).send();
 		}
-		
-		const usersCollection = await client.db('main').collection('users');
-		const users = await usersCollection.find({email: user.email}).toArray();
 		
 		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
 			if (err) {
 				return res.status(403).send();
 			}
+			
+			const usersCollection = await client.db('main').collection('users');
+			const users = await usersCollection.find({email: user.email}).toArray();
+			
+			const messagesCollection = await client.db('main').collection('messages');
+			const dialogsUsernames = (await messagesCollection
+					.find({$or: [{username: users?.[0]?.username}, {conversationalist: users?.[0]?.username}]})
+					.toArray())
+					.map((dialog) => [dialog.username, dialog.conversationalist]);
+			
+			const usernames = [...new Set(dialogsUsernames.flat())].filter((username) => username !== users?.[0]?.username);
+			
+			const dialogs = await usersCollection
+				.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
+				.toArray();
 			
 			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
 				return res.status(403).send();
@@ -39,6 +51,7 @@ router.post('/', (req, res) => {
 			
 			return res.status(200).send({
 				accessToken,
+				dialogs,
 				user: {
 					name: users?.[0]?.name,
 					username: users?.[0]?.username,
