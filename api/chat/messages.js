@@ -26,6 +26,7 @@ wss.on('connection', async (ws) => {
 				username: data.username,
 				conversationalist: data.conversationalist,
 				message: data.message,
+				name: data.name,
 			});
 		}
 		
@@ -56,19 +57,6 @@ router.post('/dialogs', authenticateJWT, async (req, res) => {
 	
 	return res.status(200).send({
 		dialogs,
-	});
-})
-
-router.post('/chat', authenticateJWT, async (req, res) => {
-	const {username, conversationalist} = req.body;
-	
-	const messagesCollection = await client.db('main').collection('messages');
-	const messages = await messagesCollection
-		.find({$or: [{username, conversationalist}, {username: conversationalist, conversationalist: username}]})
-		.toArray();
-	
-	return res.status(200).send({
-		messages,
 	});
 })
 
