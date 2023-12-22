@@ -2,9 +2,7 @@ const express = require('express');
 const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
-const getMessages = require('../../services/functions/getMessages');
 const authenticateJWT = require('../../services/functions/authenticateJWT');
-const {ObjectId} = require('mongodb');
 
 const router = express.Router();
 const app = express();
@@ -63,14 +61,20 @@ wss.on('connection', async (ws) => {
 		for (const client1 of wss.clients) {
 			if (client1.roomName === ws.roomName) {
 				const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
+				const firstUser = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUser;
+				const secondUser = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUser;
 				if (!_id) return;
 				
 				const messages = (await messagesCollection.find({roomId: _id}).toArray());
+				const conversationalistName = (await usersCollection.findOne({_id: userId !== firstUser ? firstUser : secondUser})).name
 				
 				for (const message of messages) {
 					message.name = (await usersCollection.findOne({_id: message.userId}))?.name;
 				}
-				client1.send(JSON.stringify(messages));
+				client1.send(JSON.stringify({
+					conversationalistName,
+					messages
+				}));
 			}
 		}
 	});
@@ -79,15 +83,20 @@ wss.on('connection', async (ws) => {
 server.listen(8000);
 
 router.post('/rooms', authenticateJWT, async (req, res) => {
-	// const {username, conversationalist} = req.body;
-	//
-	// const roomsCollection = await client.db('main').collection('rooms');
-	// const usersCollection = await client.db('main').collection('users');
-	// const {_id} = (await usersCollection.findOne({username}));
-	//
-	// const rooms = (await roomsCollection.find({
-	// 	$or: [{firstUser: _id}, {secondUser: _id}],
-	// }).toArray()).map((room) => ({...room, conversationalist}));
+	const {username, conversationalist} = req.body;
+	
+	const roomsCollection = await client.db('main').collection('rooms');
+	const usersCollection = await client.db('main').collection('users');
+	const {_id} = (await usersCollection.findOne({username}));
+	
+	const rooms = await roomsCollection.find({
+		$or: [{firstUser: _id}, {secondUser: _id}],
+	}).toArray();
+	
+	for (const room of rooms) {
+		room.conversationalist = conversationalist;
+		room.conversationalistName = (await usersCollection.findOne({username: conversationalist}))?.name;
+	}
 	
 	// const usersCollection = await client.db('main').collection('users');
 	// const messagesCollection = await client.db('main').collection('messages');
@@ -102,9 +111,9 @@ router.post('/rooms', authenticateJWT, async (req, res) => {
 	// 	.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
 	// 	.toArray();
 	//
-	// return res.status(200).send({
-	// 	rooms,
-	// });
+	return res.status(200).send({
+		rooms,
+	});
 });
 
 module.exports = router;
