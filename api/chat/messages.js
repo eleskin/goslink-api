@@ -9,11 +9,9 @@ const router = express.Router();
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
-const users = new Set();
 
 wss.on('connection', async (ws) => {
 	await client.connect();
-	// users.add(ws);
 	
 	ws.on('message', async (_data) => {
 		const data = JSON.parse(_data);
@@ -68,9 +66,18 @@ wss.on('connection', async (ws) => {
 
 server.listen(8000);
 
-router.post('/dialogs', authenticateJWT, async (req, res) => {
-	// const {username} = req.body;
-	//
+router.post('/rooms', authenticateJWT, async (req, res) => {
+	const {username, conversationalist} = req.body;
+	console.log(username);
+	
+	const roomsCollection = await client.db('main').collection('rooms');
+	const usersCollection = await client.db('main').collection('users');
+	const {_id} = (await usersCollection.findOne({username}));
+	
+	const rooms = (await roomsCollection.find({
+		$or: [{firstUser: _id}, {secondUser: _id}],
+	}).toArray()).map((room) => ({...room, conversationalist}));
+	
 	// const usersCollection = await client.db('main').collection('users');
 	// const messagesCollection = await client.db('main').collection('messages');
 	// const dialogsUsernames = (await messagesCollection
@@ -84,9 +91,9 @@ router.post('/dialogs', authenticateJWT, async (req, res) => {
 	// 	.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
 	// 	.toArray();
 	//
-	// return res.status(200).send({
-	// 	dialogs,
-	// });
+	return res.status(200).send({
+		rooms,
+	});
 })
 
 module.exports = router;
