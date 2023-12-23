@@ -28,7 +28,10 @@ wss.on('connection', async (ws) => {
 		if (!userId) return;
 		
 		if (data.method === 'GET') {
-			console.log(data.method);
+			ws.send(JSON.stringify({
+				method: data.method,
+				conversationalistName: (await usersCollection.findOne({username: data.conversationalist})).name,
+			}));
 		} else if (data.method === 'POST') {
 			const room = await roomsCollection.findOne({roomName});
 			
@@ -66,7 +69,7 @@ wss.on('connection', async (ws) => {
 				if (!_id) return;
 				
 				const messages = (await messagesCollection.find({roomId: _id}).toArray());
-				const conversationalistName = (await usersCollection.findOne({_id: userId !== firstUser ? firstUser : secondUser})).name;
+				const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUser.toString() ? firstUser : secondUser})).name;
 				
 				for (const message of messages) {
 					message.name = (await usersCollection.findOne({_id: message.userId}))?.name;
