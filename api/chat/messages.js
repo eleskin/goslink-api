@@ -72,7 +72,7 @@ wss.on('connection', async (ws) => {
 				const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUser.toString() ? firstUser : secondUser})).name;
 				
 				for (const message of messages) {
-					message.name = (await usersCollection.findOne({_id: message.userId}))?.name;
+					message.author = (await usersCollection.findOne({_id: message.userId}))?.name;
 				}
 				client1.send(JSON.stringify({
 					conversationalistName,
