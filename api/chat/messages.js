@@ -66,14 +66,14 @@ wss.on('connection', async (ws) => {
 				if (!_id) return;
 				
 				const messages = (await messagesCollection.find({roomId: _id}).toArray());
-				const conversationalistName = (await usersCollection.findOne({_id: userId !== firstUser ? firstUser : secondUser})).name
+				const conversationalistName = (await usersCollection.findOne({_id: userId !== firstUser ? firstUser : secondUser})).name;
 				
 				for (const message of messages) {
 					message.name = (await usersCollection.findOne({_id: message.userId}))?.name;
 				}
 				client1.send(JSON.stringify({
 					conversationalistName,
-					messages
+					messages,
 				}));
 			}
 		}
@@ -83,10 +83,11 @@ wss.on('connection', async (ws) => {
 server.listen(8000);
 
 router.post('/rooms', authenticateJWT, async (req, res) => {
-	const {username, conversationalist} = req.body;
+	const {username} = req.body;
 	
 	const roomsCollection = await client.db('main').collection('rooms');
 	const usersCollection = await client.db('main').collection('users');
+	const messagesCollection = await client.db('main').collection('messages');
 	const {_id} = (await usersCollection.findOne({username}));
 	
 	const rooms = await roomsCollection.find({
@@ -94,23 +95,13 @@ router.post('/rooms', authenticateJWT, async (req, res) => {
 	}).toArray();
 	
 	for (const room of rooms) {
-		room.conversationalist = conversationalist;
-		room.conversationalistName = (await usersCollection.findOne({username: conversationalist}))?.name;
+		const conversationalistId = room.firstUser.toString() === _id.toString() ? room.secondUser : room.firstUser;
+		room.conversationalist = (await usersCollection.findOne({_id: conversationalistId})).username;
+		room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId})).name;
+		const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);
+		room.lastMessage = (await messages.toArray())[0].text;
 	}
 	
-	// const usersCollection = await client.db('main').collection('users');
-	// const messagesCollection = await client.db('main').collection('messages');
-	// const dialogsUsernames = (await messagesCollection
-	// 	.find({$or: [{username}, {conversationalist: username}]})
-	// 	.toArray())
-	// 	.map((dialog) => [dialog.username, dialog.conversationalist]);
-	//
-	// const usernames = [...new Set(dialogsUsernames.flat())].filter((dialogUsername) => dialogUsername !== username);
-	//
-	// const dialogs = await usersCollection
-	// 	.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
-	// 	.toArray();
-	//
 	return res.status(200).send({
 		rooms,
 	});
