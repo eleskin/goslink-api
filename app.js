@@ -10,6 +10,7 @@ dotenv.config();
 
 const apiUserAuthRouter = require('./api/user/auth');
 const apiUserSearchRouter = require('./api/user/search');
+const apiChatRouter = require('./api/chat');
 const apiWebSocketRouter = require('./api/websocket');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/user/auth', apiUserAuthRouter);
 app.use('/api/user/search', apiUserSearchRouter);
+app.use('/api/chat', apiChatRouter);
 
 app.use('/api/websocket', apiWebSocketRouter);
 
