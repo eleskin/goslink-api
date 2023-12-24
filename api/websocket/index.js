@@ -83,8 +83,6 @@ wss.on('connection', async (ws) => {
 	});
 });
 
-server.listen(8000);
-
 router.post('/rooms', authenticateJWT, async (req, res) => {
 	const {username} = req.body;
 	
