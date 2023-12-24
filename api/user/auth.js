@@ -54,6 +54,7 @@ router.post('/', (req, res) => {
 				accessToken,
 				dialogs,
 				user: {
+					_id: users?.[0]?._id,
 					name: users?.[0]?.name,
 					username: users?.[0]?.username,
 					email: users?.[0]?.email,

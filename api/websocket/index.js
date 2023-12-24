@@ -2,14 +2,16 @@ const express = require('express');
 const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
+const {ObjectId} = require('mongodb');
 
 const router = express.Router();
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
 
-wss.on('connection', async (ws) => {
+wss.on('connection', async (ws, request) => {
 	await client.connect();
+	ws._id = new ObjectId(new URL(request.url, `ws://${request.headers.host}`).searchParams.get('_id'));
 	
 	ws.on('message', async (_data) => {
 		const data = JSON.parse(_data);
@@ -57,6 +59,20 @@ wss.on('connection', async (ws) => {
 					text: data.message,
 					userId,
 				});
+				
+				const room = await roomsCollection.findOne({_id: insertedId});
+				const conversationalistId = room.firstUser === insertedId ? room.secondUser : room.firstUser;
+				
+				for (const client of wss.clients) {
+					if (client._id.toString() === conversationalistId.toString()) {
+						client.send(JSON.stringify({
+							type: 'NEW_MESSAGE',
+							data: {
+								conversationalistUsername: data.username,
+							}
+						}));
+					}
+				}
 			}
 		}
 		
@@ -81,5 +97,7 @@ wss.on('connection', async (ws) => {
 		}
 	});
 });
+
+server.listen(8000);
 
 module.exports = router;

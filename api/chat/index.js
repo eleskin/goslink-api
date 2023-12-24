@@ -20,7 +20,7 @@ router.post('/rooms', authenticateJWT, async (req, res) => {
 		room.conversationalist = (await usersCollection.findOne({_id: conversationalistId})).username;
 		room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId})).name;
 		const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);
-		room.lastMessage = (await messages.toArray())[0].text;
+		room.lastMessage = (await messages.toArray())[0]?.text;
 	}
 	
 	return res.status(200).send({
