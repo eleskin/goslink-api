@@ -80,10 +80,9 @@ wss.on('connection', async (ws, request) => {
 				});
 				
 				const room = await roomsCollection.findOne({_id: insertedId});
-				const conversationalistId = room.firstUser === insertedId ? room.secondUser : room.firstUser;
 				
 				for (const client of wss.clients) {
-					if (client._id.toString() === conversationalistId.toString()) {
+					if (client._id.toString() === (room.firstUser === userId ? room.secondUser : room.firstUser).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
@@ -91,7 +90,7 @@ wss.on('connection', async (ws, request) => {
 							}
 						}));
 					}
-					if (client._id.toString() === userId.toString()) {
+					if (client._id.toString() === (room.firstUser !== userId ? room.secondUser : room.firstUser).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
