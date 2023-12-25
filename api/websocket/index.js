@@ -3,58 +3,13 @@ const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
 const {ObjectId} = require('mongodb');
-const sendResponse = require('./services/sendResponse');
+const handleGetRequest = require('./services/handleGetRequest');
+const handlePostRequest = require('./services/handlePostRequest');
 
 const router = express.Router();
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
-
-const handleGetRequest = async (collections, {ws, data}) => {
-	const {usersCollection} = collections;
-	
-	ws.send(JSON.stringify({
-		method: data.method,
-		conversationalistName: (await usersCollection.findOne({username: data.conversationalist})).name,
-	}));
-};
-
-const handlePostRequest = async (collections, {roomName, userId, data}) => {
-	const {roomsCollection, usersCollection, messagesCollection} = collections;
-	
-	const room = await roomsCollection.findOne({roomName});
-	
-	if (room) {
-		await messagesCollection.insertOne({
-			roomId: room._id,
-			text: data.message,
-			userId,
-		});
-		
-		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
-	} else {
-		const [firstUserId, secondUserId] = [
-			(await usersCollection.findOne({username: users[0]}))._id,
-			(await usersCollection.findOne({username: users[1]}))._id,
-		];
-		
-		const {insertedId} = await roomsCollection.insertOne({
-			firstUserId,
-			secondUserId,
-			roomName,
-		});
-		
-		await messagesCollection.insertOne({
-			roomId: insertedId,
-			text: data.message,
-			userId,
-		});
-		
-		const room = await roomsCollection.findOne({_id: insertedId});
-		
-		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
-	}
-};
 
 wss.on('connection', async (ws, request) => {
 	await client.connect();
@@ -79,11 +34,13 @@ wss.on('connection', async (ws, request) => {
 		if (data.method === 'GET') {
 			await handleGetRequest(
 				{usersCollection},
-				{ws, data},
+				ws,
+				data,
 			);
 		} else if (data.method === 'POST') {
 			await handlePostRequest(
 				{roomsCollection, usersCollection, messagesCollection},
+				wss,
 				{roomName, userId, data},
 			);
 		}
