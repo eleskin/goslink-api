@@ -3,39 +3,12 @@ const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
 const {ObjectId} = require('mongodb');
+const sendResponse = require('./services/sendResponse');
 
 const router = express.Router();
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
-
-const createNewMessageResponse = (type, {room, userId, data}) => {
-	for (const client of wss.clients) {
-		if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
-			client.send(JSON.stringify({
-				type,
-				data: {
-					conversationalistUsername: data.conversationalist,
-				},
-			}));
-		}
-		if (client._id.toString() === (room.firstUserId !== userId ? room.secondUserId : room.firstUserId).toString()) {
-			client.send(JSON.stringify({
-				type,
-				data: {
-					conversationalistUsername: data.username,
-				},
-			}));
-		}
-	}
-};
-
-const sendResponse = (type, params) => {
-	switch (type) {
-		case 'NEW_MESSAGE':
-			createNewMessageResponse(type, params);
-	}
-};
 
 const handleGetRequest = async (collections, {ws, data}) => {
 	const {usersCollection} = collections;
@@ -58,7 +31,7 @@ const handlePostRequest = async (collections, {roomName, userId, data}) => {
 			userId,
 		});
 		
-		sendResponse('NEW_MESSAGE', {room, userId, data});
+		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
 	} else {
 		const [firstUserId, secondUserId] = [
 			(await usersCollection.findOne({username: users[0]}))._id,
@@ -79,7 +52,7 @@ const handlePostRequest = async (collections, {roomName, userId, data}) => {
 		
 		const room = await roomsCollection.findOne({_id: insertedId});
 		
-		sendResponse('NEW_MESSAGE', {room, userId, data});
+		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
 	}
 };
 
