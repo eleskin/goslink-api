@@ -3,8 +3,8 @@ const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
 const {ObjectId} = require('mongodb');
-const handleGetRequest = require('./services/handleGetRequest');
 const handlePostRequest = require('./services/handlePostRequest');
+const createNewUserResponse = require('./services/createNewUserResponse');
 
 const router = express.Router();
 const app = express();
@@ -32,7 +32,7 @@ wss.on('connection', async (ws, request) => {
 		ws.roomName = roomName;
 		
 		if (data.type === 'NEW_USER') {
-			await handleGetRequest(
+			await createNewUserResponse(
 				{usersCollection},
 				ws,
 				data,

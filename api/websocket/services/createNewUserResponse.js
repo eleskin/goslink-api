@@ -1,4 +1,4 @@
-const handleGetRequest = async (collections, ws, data) => {
+const createNewUserResponse = async (collections, ws, data) => {
 	const {usersCollection} = collections;
 	
 	ws.send(JSON.stringify({
@@ -7,4 +7,4 @@ const handleGetRequest = async (collections, ws, data) => {
 	}));
 };
 
-module.exports = handleGetRequest;
+module.exports = createNewUserResponse;
