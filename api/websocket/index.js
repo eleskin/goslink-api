@@ -45,24 +45,27 @@ wss.on('connection', async (ws, request) => {
 			);
 		}
 		
-		for (const client1 of wss.clients) {
-			if (client1.roomName === ws.roomName) {
-				const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
-				const firstUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUserId;
-				const secondUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUserId;
-				if (!_id) return;
-				
-				const messages = (await messagesCollection.find({roomId: _id}).toArray());
-				const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUserId.toString() ? firstUserId : secondUserId})).name;
-				
-				for (const message of messages) {
-					message.author = (await usersCollection.findOne({_id: message.userId}))?.name;
-				}
-				client1.send(JSON.stringify({
-					conversationalistName,
-					messages,
-				}));
+		for (const client of wss.clients) {
+			if (client.roomName !== ws.roomName) return;
+			
+			const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
+			
+			if (!_id) return;
+			
+			const firstUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUserId;
+			const secondUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUserId;
+			
+			const messages = (await messagesCollection.find({roomId: _id}).toArray());
+			const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUserId.toString() ? firstUserId : secondUserId})).name;
+			
+			for (const message of messages) {
+				message.author = (await usersCollection.findOne({_id: message.userId}))?.name;
 			}
+			
+			client.send(JSON.stringify({
+				conversationalistName,
+				messages,
+			}));
 		}
 	});
 });
