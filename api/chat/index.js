@@ -12,11 +12,11 @@ router.post('/rooms', authenticateJWT, async (req, res) => {
 	const {_id} = (await usersCollection.findOne({username}));
 	
 	const rooms = await roomsCollection.find({
-		$or: [{firstUser: _id}, {secondUser: _id}],
+		$or: [{firstUserId: _id}, {secondUserId: _id}],
 	}).toArray();
 	
 	for (const room of rooms) {
-		const conversationalistId = room.firstUser.toString() === _id.toString() ? room.secondUser : room.firstUser;
+		const conversationalistId = room.firstUserId.toString() === _id.toString() ? room.secondUserId : room.firstUserId;
 		room.conversationalist = (await usersCollection.findOne({_id: conversationalistId})).username;
 		room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId})).name;
 		const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);

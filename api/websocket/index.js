@@ -44,7 +44,7 @@ wss.on('connection', async (ws, request) => {
 				});
 				
 				for (const client of wss.clients) {
-					if (client._id.toString() === (room.firstUser === userId ? room.secondUser : room.firstUser).toString()) {
+					if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
@@ -52,7 +52,7 @@ wss.on('connection', async (ws, request) => {
 							}
 						}));
 					}
-					if (client._id.toString() === (room.firstUser !== userId ? room.secondUser : room.firstUser).toString()) {
+					if (client._id.toString() === (room.firstUserId !== userId ? room.secondUserId : room.firstUserId).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
@@ -62,14 +62,14 @@ wss.on('connection', async (ws, request) => {
 					}
 				}
 			} else {
-				const [firstUser, secondUser] = [
+				const [firstUserId, secondUserId] = [
 					(await usersCollection.findOne({username: users[0]}))._id,
 					(await usersCollection.findOne({username: users[1]}))._id,
 				];
 				
 				const {insertedId} = await roomsCollection.insertOne({
-					firstUser,
-					secondUser,
+					firstUserId,
+					secondUserId,
 					roomName,
 				});
 				
@@ -82,7 +82,7 @@ wss.on('connection', async (ws, request) => {
 				const room = await roomsCollection.findOne({_id: insertedId});
 				
 				for (const client of wss.clients) {
-					if (client._id.toString() === (room.firstUser === userId ? room.secondUser : room.firstUser).toString()) {
+					if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
@@ -90,7 +90,7 @@ wss.on('connection', async (ws, request) => {
 							}
 						}));
 					}
-					if (client._id.toString() === (room.firstUser !== userId ? room.secondUser : room.firstUser).toString()) {
+					if (client._id.toString() === (room.firstUserId !== userId ? room.secondUserId : room.firstUserId).toString()) {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
@@ -105,12 +105,12 @@ wss.on('connection', async (ws, request) => {
 		for (const client1 of wss.clients) {
 			if (client1.roomName === ws.roomName) {
 				const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
-				const firstUser = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUser;
-				const secondUser = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUser;
+				const firstUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUserId;
+				const secondUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUserId;
 				if (!_id) return;
 				
 				const messages = (await messagesCollection.find({roomId: _id}).toArray());
-				const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUser.toString() ? firstUser : secondUser})).name;
+				const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUserId.toString() ? firstUserId : secondUserId})).name;
 				
 				for (const message of messages) {
 					message.author = (await usersCollection.findOne({_id: message.userId}))?.name;
