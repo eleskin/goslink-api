@@ -102,8 +102,6 @@ wss.on('connection', async (ws, request) => {
 				}
 			}
 		}
-		// await roomsCollection.deleteMany({});
-		// await messagesCollection.deleteMany({});
 		
 		for (const client1 of wss.clients) {
 			if (client1.roomName === ws.roomName) {
