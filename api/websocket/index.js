@@ -41,7 +41,7 @@ wss.on('connection', async (ws, request) => {
 			await handlePostRequest(
 				{roomsCollection, usersCollection, messagesCollection},
 				wss,
-				{roomName, userId, data},
+				{roomName, userId, users, data},
 			);
 		}
 		

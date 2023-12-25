@@ -1,5 +1,5 @@
 const sendResponse = require('./sendResponse');
-const handlePostRequest = async (collections, wss, {roomName, userId, data}) => {
+const handlePostRequest = async (collections, wss, {roomName, userId, users, data}) => {
 	const {roomsCollection, usersCollection, messagesCollection} = collections;
 	
 	const room = await roomsCollection.findOne({roomName});
