@@ -1,4 +1,24 @@
-const sendResponse = require('./sendResponse');
+const sendMessages = (wss, {room, userId, data}) => {
+	for (const client of wss.clients) {
+		if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
+			client.send(JSON.stringify({
+				type: 'NEW_MESSAGE',
+				data: {
+					conversationalistUsername: data.conversationalist,
+				},
+			}));
+		}
+		if (client._id.toString() === (room.firstUserId !== userId ? room.secondUserId : room.firstUserId).toString()) {
+			client.send(JSON.stringify({
+				type: 'NEW_MESSAGE',
+				data: {
+					conversationalistUsername: data.username,
+				},
+			}));
+		}
+	}
+};
+
 const handlePostRequest = async (collections, wss, {roomName, userId, users, data}) => {
 	const {roomsCollection, usersCollection, messagesCollection} = collections;
 	
@@ -11,7 +31,7 @@ const handlePostRequest = async (collections, wss, {roomName, userId, users, dat
 			userId,
 		});
 		
-		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
+		sendMessages(wss, {room, userId, data});
 	} else {
 		const [firstUserId, secondUserId] = [
 			(await usersCollection.findOne({username: users[0]}))._id,
@@ -32,7 +52,7 @@ const handlePostRequest = async (collections, wss, {roomName, userId, users, dat
 		
 		const room = await roomsCollection.findOne({_id: insertedId});
 		
-		sendResponse('NEW_MESSAGE', wss, {room, userId, data});
+		sendMessages(wss, {room, userId, data});
 	}
 };
 
