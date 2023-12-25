@@ -3,7 +3,7 @@ const client = require('../../services/client');
 const http = require('http');
 const WebSocket = require('ws');
 const {ObjectId} = require('mongodb');
-const handlePostRequest = require('./services/handlePostRequest');
+const createNewMessageResponse = require('./services/createNewMessageResponse');
 const createNewUserResponse = require('./services/createNewUserResponse');
 
 const router = express.Router();
@@ -38,7 +38,7 @@ wss.on('connection', async (ws, request) => {
 				data,
 			);
 		} else if (data.method === 'POST') {
-			await handlePostRequest(
+			await createNewMessageResponse(
 				{roomsCollection, usersCollection, messagesCollection},
 				wss,
 				{roomName, userId, users, data},

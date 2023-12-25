@@ -19,7 +19,7 @@ const sendMessages = (wss, {room, userId, data}) => {
 	}
 };
 
-const handlePostRequest = async (collections, wss, {roomName, userId, users, data}) => {
+const createNewMessageResponse = async (collections, wss, {roomName, userId, users, data}) => {
 	const {roomsCollection, usersCollection, messagesCollection} = collections;
 	
 	const room = await roomsCollection.findOne({roomName});
@@ -56,4 +56,4 @@ const handlePostRequest = async (collections, wss, {roomName, userId, users, dat
 	}
 };
 
-module.exports = handlePostRequest;
+module.exports = createNewMessageResponse;
