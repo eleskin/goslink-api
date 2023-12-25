@@ -31,7 +31,7 @@ wss.on('connection', async (ws, request) => {
 		
 		ws.roomName = roomName;
 		
-		if (data.method === 'GET') {
+		if (data.type === 'NEW_USER') {
 			await handleGetRequest(
 				{usersCollection},
 				ws,

@@ -2,7 +2,7 @@ const handleGetRequest = async (collections, ws, data) => {
 	const {usersCollection} = collections;
 	
 	ws.send(JSON.stringify({
-		method: data.method,
+		type: data.type,
 		conversationalistName: (await usersCollection.findOne({username: data.conversationalist})).name,
 	}));
 };
