@@ -35,6 +35,7 @@ wss.on('connection', async (ws, request) => {
 			await createNewUserResponse(
 				{usersCollection},
 				ws,
+				wss,
 				data,
 			);
 		} else if (data.type === 'NEW_MESSAGE') {
