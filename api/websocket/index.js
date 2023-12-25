@@ -37,7 +37,7 @@ wss.on('connection', async (ws, request) => {
 				ws,
 				data,
 			);
-		} else if (data.method === 'POST') {
+		} else if (data.type === 'NEW_MESSAGE') {
 			await createNewMessageResponse(
 				{roomsCollection, usersCollection, messagesCollection},
 				wss,
