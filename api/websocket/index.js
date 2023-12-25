@@ -42,6 +42,25 @@ wss.on('connection', async (ws, request) => {
 					text: data.message,
 					userId,
 				});
+				
+				for (const client of wss.clients) {
+					if (client._id.toString() === (room.firstUser === userId ? room.secondUser : room.firstUser).toString()) {
+						client.send(JSON.stringify({
+							type: 'NEW_MESSAGE',
+							data: {
+								conversationalistUsername: data.conversationalist,
+							}
+						}));
+					}
+					if (client._id.toString() === (room.firstUser !== userId ? room.secondUser : room.firstUser).toString()) {
+						client.send(JSON.stringify({
+							type: 'NEW_MESSAGE',
+							data: {
+								conversationalistUsername: data.username,
+							}
+						}));
+					}
+				}
 			} else {
 				const [firstUser, secondUser] = [
 					(await usersCollection.findOne({username: users[0]}))._id,
@@ -68,6 +87,14 @@ wss.on('connection', async (ws, request) => {
 						client.send(JSON.stringify({
 							type: 'NEW_MESSAGE',
 							data: {
+								conversationalistUsername: data.conversationalist,
+							}
+						}));
+					}
+					if (client._id.toString() === userId.toString()) {
+						client.send(JSON.stringify({
+							type: 'NEW_MESSAGE',
+							data: {
 								conversationalistUsername: data.username,
 							}
 						}));
@@ -75,6 +102,8 @@ wss.on('connection', async (ws, request) => {
 				}
 			}
 		}
+		// await roomsCollection.deleteMany({});
+		// await messagesCollection.deleteMany({});
 		
 		for (const client1 of wss.clients) {
 			if (client1.roomName === ws.roomName) {
