@@ -11,6 +11,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
 
+const connectedClients = new Set();
+
 wss.on('connection', async (ws, request) => {
 	await client.connect();
 	
@@ -20,9 +22,17 @@ wss.on('connection', async (ws, request) => {
 	
 	const actualRooms = Array.from(wss.clients).map(client => client.roomName);
 	usersCollection.findOne({_id: new ObjectId(ws._id)}).then((response) => {
+		if (connectedClients.has(response._id.toString())) return;
+		connectedClients.add(ws._id.toString());
+		
+		console.log(connectedClients);
+		console.log(response._id.toString());
+		
 		const onlineRooms = actualRooms.filter((room) => room?.includes(response.username));
 		if (onlineRooms?.length) {
 			const onlineUsers = onlineRooms.map((room) => room.split('|').filter((user) => user !== response.username));
+			
+			
 			ws.send(JSON.stringify({
 				type: 'SET_ONLINE',
 				data: {
