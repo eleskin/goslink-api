@@ -7,7 +7,7 @@ const createNewUserResponse = async (collections, ws, wss, data) => {
 		if (client._id.toString() === conversationalist._id.toString()) {
 			
 			client.send(JSON.stringify({
-				type: 'SET_ONLINE',
+				type: data.online ? 'SET_ONLINE' : 'SET_OFFLINE',
 				data: {
 					'conversationalist': data.username,
 				},
