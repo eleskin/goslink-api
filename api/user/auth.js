@@ -25,20 +25,25 @@ router.post('/', (req, res) => {
 				return res.status(403).send();
 			}
 			
+			const roomsCollection = await client.db('main').collection('rooms');
 			const usersCollection = await client.db('main').collection('users');
+			const messagesCollection = await client.db('main').collection('messages');
 			const users = await usersCollection.find({email: user.email}).toArray();
 			
-			const messagesCollection = await client.db('main').collection('messages');
-			const dialogsUsernames = (await messagesCollection
-					.find({$or: [{username: users?.[0]?.username}, {conversationalist: users?.[0]?.username}]})
-					.toArray())
-					.map((dialog) => [dialog.username, dialog.conversationalist]);
+			// const messagesCollection = await client.db('main').collection('messages');
+			// const dialogsUsernames = (await messagesCollection
+			// 		.find({$or: [{username: users?.[0]?.username}, {conversationalist: users?.[0]?.username}]})
+			// 		.toArray())
+			// 		.map((dialog) => [dialog.username, dialog.conversationalist]);
 			
-			const usernames = [...new Set(dialogsUsernames.flat())].filter((username) => username !== users?.[0]?.username);
+			// const usernames = [...new Set(dialogsUsernames.flat())].filter((username) => username !== users?.[0]?.username);
 			
-			const dialogs = await usersCollection
-				.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
-				.toArray();
+			// const dialogs = await usersCollection
+			// 	.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
+			// 	.toArray();
+			const rooms = await roomsCollection.find({
+				$or: [{firstUserId: users?.[0]?._id}, {secondUserId: users?.[0]?._id}],
+			}).toArray();
 			
 			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
 				return res.status(403).send();
@@ -50,9 +55,17 @@ router.post('/', (req, res) => {
 				{expiresIn: '1h'},
 			);
 			
+			for (const room of rooms) {
+				const conversationalistId = room.firstUserId.toString() === users?.[0]?._id.toString() ? room.secondUserId : room.firstUserId;
+				room.conversationalist = (await usersCollection.findOne({_id: conversationalistId})).username;
+				room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId})).name;
+				const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);
+				room.lastMessage = (await messages.toArray())[0]?.text;
+			}
+			
 			return res.status(200).send({
 				accessToken,
-				dialogs,
+				rooms,
 				user: {
 					_id: users?.[0]?._id,
 					name: users?.[0]?.name,
