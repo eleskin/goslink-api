@@ -26,7 +26,7 @@ wss.on('connection', async (ws, request) => {
 			ws.send(JSON.stringify({
 				type: 'SET_ONLINE',
 				data: {
-					conversationalists: onlineUsers.flat(),
+					conversationalists: [...new Set([...onlineUsers.flat()])],
 				},
 			}));
 		}
