@@ -1,11 +1,17 @@
 const createNewUserResponse = async (collections, ws, wss, data) => {
 	const {usersCollection} = collections;
 	
-	const conversationalistId = (await usersCollection.findOne({username: data.conversationalist}))._id;
+	const conversationalist = await usersCollection.findOne({username: data.conversationalist});
 	
 	for (const client of wss.clients) {
-		if (client._id.toString() === conversationalistId.toString()) {
-			client.send(JSON.stringify({'sda': 'dsafds'}));
+		if (client._id.toString() === conversationalist._id.toString()) {
+			
+			client.send(JSON.stringify({
+				type: 'SET_ONLINE',
+				data: {
+					'conversationalist': data.username,
+				},
+			}));
 		}
 	}
 	
