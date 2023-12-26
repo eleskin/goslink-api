@@ -46,12 +46,12 @@ wss.on('connection', async (ws, request) => {
 			);
 		}
 		
-		for (const client of wss.clients) {
-			if (client.roomName !== ws.roomName) return;
+		for (const client of Array.from(wss.clients)) {
+			if (client.roomName !== ws.roomName) continue;
 			
 			const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
 			
-			if (!_id) return;
+			if (!_id) continue;
 			
 			const firstUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.firstUserId;
 			const secondUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUserId;
