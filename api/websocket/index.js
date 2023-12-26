@@ -21,25 +21,61 @@ wss.on('connection', async (ws, request) => {
 	const usersCollection = await client.db('main').collection('users');
 	
 	const actualRooms = Array.from(wss.clients).map(client => client.roomName);
-	usersCollection.findOne({_id: new ObjectId(ws._id)}).then((response) => {
-		if (connectedClients.has(response._id.toString())) return;
-		connectedClients.add(ws._id.toString());
-		
-		console.log(connectedClients);
-		console.log(response._id.toString());
-		
-		const onlineRooms = actualRooms.filter((room) => room?.includes(response.username));
-		if (onlineRooms?.length) {
-			const onlineUsers = onlineRooms.map((room) => room.split('|').filter((user) => user !== response.username));
-			
-			
-			ws.send(JSON.stringify({
-				type: 'SET_ONLINE',
-				data: {
-					conversationalists: [...new Set([...onlineUsers.flat()])],
-				},
-			}));
+	usersCollection.findOne({_id: new ObjectId(ws._id)}).then(async (response) => {
+		if (connectedClients.has(response._id.toString())) {
+			connectedClients.delete(response._id.toString());
+			return;
 		}
+		
+		const onlineRooms = actualRooms.filter((room) => room?.includes(response.username)).map((room) => room.split('|'));
+		
+		if (onlineRooms?.length) {
+			for (const roomsUsers of onlineRooms) {
+				const [firstUserUsername, secondUserUsername] = roomsUsers;
+				
+				const firstUser = await usersCollection.findOne({username: firstUserUsername});
+				const secondUser = await usersCollection.findOne({username: secondUserUsername});
+				
+				const firstUserId = firstUser._id;
+				const secondUserId = secondUser._id;
+				
+				if (connectedClients.has(firstUserId.toString()) && connectedClients.has(secondUserId.toString())) {
+					console.log(1);
+					ws.send(JSON.stringify({
+						type: 'SET_ONLINE',
+						data: {
+							conversationalists: [firstUser.username, secondUser.username],
+						},
+					}));
+				} else if (connectedClients.has(firstUserId.toString())) {
+					console.log(2);
+					ws.send(JSON.stringify({
+						type: 'SET_ONLINE',
+						data: {
+							conversationalist: firstUser.username,
+						},
+					}));
+				} else if (connectedClients.has(secondUserId.toString())) {
+					console.log(3);
+					ws.send(JSON.stringify({
+						type: 'SET_ONLINE',
+						data: {
+							conversationalist: secondUser.username,
+						},
+					}));
+				} else {
+					console.log(4);
+					ws.send(JSON.stringify({
+						type: 'SET_ONLINE',
+						data: {
+							conversationalists: [firstUser.username, secondUser.username],
+						},
+					}));
+				}
+			}
+		}
+		
+		connectedClients.add(ws._id.toString());
 	});
 	
 	ws.on('message', async (_data) => {
