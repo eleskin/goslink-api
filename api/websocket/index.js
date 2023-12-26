@@ -16,13 +16,28 @@ wss.on('connection', async (ws, request) => {
 	
 	ws._id = new ObjectId(new URL(request.url, `ws://${request.headers.host}`).searchParams.get('_id'));
 	
+	const usersCollection = await client.db('main').collection('users');
+	
+	const actualRooms = Array.from(wss.clients).map(client => client.roomName);
+	usersCollection.findOne({_id: new ObjectId(ws._id)}).then((response) => {
+		const onlineRooms = actualRooms.filter((room) => room?.includes(response.username));
+		if (onlineRooms?.length) {
+			const onlineUsers = onlineRooms.map((room) => room.split('|').filter((user) => user !== response.username));
+			ws.send(JSON.stringify({
+				type: 'SET_ONLINE',
+				data: {
+					conversationalists: onlineUsers.flat(),
+				},
+			}));
+		}
+	});
+	
 	ws.on('message', async (_data) => {
 		const data = JSON.parse(_data);
 		const users = [data.username, data.conversationalist].toSorted();
 		const roomName = users.join('|');
 		
 		const roomsCollection = await client.db('main').collection('rooms');
-		const usersCollection = await client.db('main').collection('users');
 		const messagesCollection = await client.db('main').collection('messages');
 		
 		const userId = (await usersCollection.findOne({username: data.username}))?._id;
