@@ -64,6 +64,7 @@ wss.on('connection', async (ws, request) => {
 			}
 			
 			client.send(JSON.stringify({
+				type: 'NEW_MESSAGES',
 				conversationalistName,
 				messages,
 			}));
