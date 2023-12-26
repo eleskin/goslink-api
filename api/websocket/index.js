@@ -5,6 +5,7 @@ const WebSocket = require('ws');
 const {ObjectId} = require('mongodb');
 const createNewMessageResponse = require('./services/createNewMessageResponse');
 const createNewUserResponse = require('./services/createNewUserResponse');
+const createDeleteMessageResponse = require('./services/createDeleteMessageResponse');
 
 const router = express.Router();
 const app = express();
@@ -79,6 +80,7 @@ wss.on('connection', async (ws, request) => {
 		if (!userId) return;
 		
 		ws.roomName = roomName;
+		console.log(data);
 		
 		if (data.type === 'NEW_USER') {
 			await createNewUserResponse(
@@ -92,6 +94,12 @@ wss.on('connection', async (ws, request) => {
 				{roomsCollection, usersCollection, messagesCollection},
 				wss,
 				{roomName, userId, users, data},
+			);
+		} else if (data.type === 'DELETE_MESSAGE') {
+			await createDeleteMessageResponse(
+				{messagesCollection},
+				wss,
+				data,
 			);
 		}
 		
