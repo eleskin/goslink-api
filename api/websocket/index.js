@@ -23,7 +23,6 @@ wss.on('connection', async (ws, request) => {
 	const actualRooms = Array.from(wss.clients).map(client => client.roomName);
 	usersCollection.findOne({_id: new ObjectId(ws._id)}).then(async (response) => {
 		if (connectedClients.has(response._id.toString())) {
-			connectedClients.delete(response._id.toString());
 			return;
 		}
 		
@@ -40,37 +39,37 @@ wss.on('connection', async (ws, request) => {
 				const secondUserId = secondUser._id;
 				
 				if (connectedClients.has(firstUserId.toString()) && connectedClients.has(secondUserId.toString())) {
-					console.log(1);
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalists: [firstUser.username, secondUser.username],
-						},
-					}));
-				} else if (connectedClients.has(firstUserId.toString())) {
-					console.log(2);
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalist: firstUser.username,
-						},
-					}));
-				} else if (connectedClients.has(secondUserId.toString())) {
-					console.log(3);
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalist: secondUser.username,
-						},
-					}));
-				} else {
-					console.log(4);
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalists: [firstUser.username, secondUser.username],
-						},
-					}));
+					// console.log(1);
+					// ws.send(JSON.stringify({
+					// 	type: 'SET_ONLINE',
+					// 	data: {
+					// 		conversationalists: [firstUser.username, secondUser.username],
+					// 	},
+					// }));
+					// } else if (connectedClients.has(firstUserId.toString())) {
+					// 	console.log(2);
+					// 	ws.send(JSON.stringify({
+					// 		type: 'SET_ONLINE',
+					// 		data: {
+					// 			conversationalist: firstUser.username,
+					// 		},
+					// 	}));
+					// } else if (connectedClients.has(secondUserId.toString())) {
+					// 	console.log(3);
+					// 	ws.send(JSON.stringify({
+					// 		type: 'SET_ONLINE',
+					// 		data: {
+					// 			conversationalist: secondUser.username,
+					// 		},
+					// 	}));
+					// } else {
+					// console.log(4);
+					// ws.send(JSON.stringify({
+					// 	type: 'SET_ONLINE',
+					// 	data: {
+					// 		conversationalists: [firstUser.username, secondUser.username],
+					// 	},
+					// }));
 				}
 			}
 		}
@@ -131,6 +130,8 @@ wss.on('connection', async (ws, request) => {
 			}));
 		}
 	});
+	
+	ws.on('close', () => connectedClients.delete(ws._id.toString()));
 });
 
 server.listen(8000);
