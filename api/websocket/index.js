@@ -39,39 +39,27 @@ wss.on('connection', async (ws, request) => {
 				const secondUserId = secondUser._id;
 				
 				if (connectedClients.has(firstUserId.toString()) && connectedClients.has(secondUserId.toString())) {
-					console.log(1);
 					ws.send(JSON.stringify({
 						type: 'SET_ONLINE',
 						data: {
 							conversationalists: [firstUser.username, secondUser.username],
 						},
 					}));
-					} else if (connectedClients.has(firstUserId.toString())) {
-						console.log(2);
-						ws.send(JSON.stringify({
-							type: 'SET_ONLINE',
-							data: {
-								conversationalist: firstUser.username,
-							},
-						}));
-					} else if (connectedClients.has(secondUserId.toString())) {
-						console.log(3);
-						ws.send(JSON.stringify({
-							type: 'SET_ONLINE',
-							data: {
-								conversationalist: secondUser.username,
-							},
-						}));
-					} else {
-					console.log(4);
+				} else if (connectedClients.has(firstUserId.toString())) {
 					ws.send(JSON.stringify({
 						type: 'SET_ONLINE',
 						data: {
-							conversationalists: [firstUser.username, secondUser.username],
+							conversationalist: firstUser.username,
+						},
+					}));
+				} else if (connectedClients.has(secondUserId.toString())) {
+					ws.send(JSON.stringify({
+						type: 'SET_ONLINE',
+						data: {
+							conversationalist: secondUser.username,
 						},
 					}));
 				}
-				connectedClients.delete(firstUserId.toString())
 			}
 		}
 		
