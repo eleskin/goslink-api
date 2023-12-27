@@ -2,70 +2,26 @@ import express from 'express';
 import client from '../../services/client';
 import http from 'http';
 import WebSocket from 'ws';
-import {ObjectId} from 'mongodb';
 import createNewMessageResponse from './services/createNewMessageResponse';
 import createNewUserResponse from './services/createNewUserResponse';
 import createDeleteMessageResponse from './services/createDeleteMessageResponse';
+import getIdFromUrl from '../../services/functions/getIdFromUrl';
+import handleConnectionWebSocket from './handlers/handleConnectionWebSocket';
+import handleCloseWebSocket from './handlers/handleCloseWebSocket';
 
 const app = express();
 const server = http.createServer(app).listen(8000);
 const wss = new WebSocket.Server({server});
 
-const connectedClients = new Set();
+const connectedClients: Set<string> = new Set();
 
 wss.on('connection', async (ws: any, request) => {
+	const _id = getIdFromUrl(request);
+	ws._id = _id;
+	
 	await client.connect();
-	
-	ws._id = new ObjectId(new URL(request.url ?? '', `ws://${request.headers.host}`).searchParams.get('_id') ?? '');
-	
-	const usersCollection = client.db('main').collection('users');
-	
-	const actualRooms = Array.from(wss.clients).map((client: any) => client.roomName);
-	usersCollection.findOne({_id: new ObjectId(ws._id)}).then(async (response) => {
-		if (connectedClients.has(response?._id.toString())) {
-			return;
-		}
-		
-		const onlineRooms = actualRooms.filter((room) => room?.includes(response?.username)).map((room) => room.split('|'));
-		
-		if (onlineRooms?.length) {
-			for (const roomsUsers of onlineRooms) {
-				const [firstUserUsername, secondUserUsername] = roomsUsers;
-				
-				const firstUser = await usersCollection.findOne({username: firstUserUsername});
-				const secondUser = await usersCollection.findOne({username: secondUserUsername});
-				
-				const firstUserId = firstUser?._id;
-				const secondUserId = secondUser?._id;
-				
-				if (connectedClients.has(firstUserId?.toString()) && connectedClients.has(secondUserId?.toString())) {
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalists: [firstUser?.username, secondUser?.username],
-						},
-					}));
-				} else if (connectedClients.has(firstUserId?.toString())) {
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalist: firstUser?.username,
-						},
-					}));
-				} else if (connectedClients.has(secondUserId?.toString())) {
-					ws.send(JSON.stringify({
-						type: 'SET_ONLINE',
-						data: {
-							conversationalist: secondUser?.username,
-						},
-					}));
-				}
-			}
-		}
-		
-		connectedClients.add(ws._id.toString());
-	});
-	
+	await handleConnectionWebSocket(client, wss, ws, connectedClients);
+
 	ws.on('message', async (_data: any) => {
 		const data = JSON.parse(_data);
 		
@@ -74,6 +30,7 @@ wss.on('connection', async (ws: any, request) => {
 		
 		const roomName = users.join('|');
 		
+		const usersCollection = client.db('main').collection('users');
 		const roomsCollection = client.db('main').collection('rooms');
 		const messagesCollection = client.db('main').collection('messages');
 		
@@ -129,7 +86,7 @@ wss.on('connection', async (ws: any, request) => {
 		}
 	});
 	
-	ws.on('close', () => connectedClients.delete(ws._id.toString()));
+	ws.on('close', () => handleCloseWebSocket(connectedClients, _id));
 });
 
 export default app;
