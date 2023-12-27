@@ -7,9 +7,8 @@ import createNewMessageResponse from './services/createNewMessageResponse';
 import createNewUserResponse from './services/createNewUserResponse';
 import createDeleteMessageResponse from './services/createDeleteMessageResponse';
 
-const router = express.Router();
 const app = express();
-const server = http.createServer(app);
+const server = http.createServer(app).listen(8000);
 const wss = new WebSocket.Server({server});
 
 const connectedClients = new Set();
@@ -133,6 +132,4 @@ wss.on('connection', async (ws: any, request) => {
 	ws.on('close', () => connectedClients.delete(ws._id.toString()));
 });
 
-server.listen(8000);
-
-export default router;
+export default app;
