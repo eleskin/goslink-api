@@ -6,7 +6,6 @@ import authenticateJWT from '../../services/functions/authenticateJWT';
 import 'dotenv/config';
 
 const router = express.Router();
-const saltRounds = 10;
 
 router.post('/', (req, res) => {
 	const {refreshToken} = req.body;
@@ -81,7 +80,7 @@ router.post('/', (req, res) => {
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
 	
-	bcrypt.hash(password, saltRounds, async (err, hash) => {
+	bcrypt.hash(password, process.env.SALT_ROUNDS ?? '', async (err, hash) => {
 		const usersCollection = await client.db('main').collection('users');
 		const users = await usersCollection.find({email}).toArray();
 		
