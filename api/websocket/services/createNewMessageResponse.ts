@@ -1,3 +1,5 @@
+import CreateNewMessageResponse from '../interfaces/CreateNewMessageResponse';
+
 const sendMessages = (wss: any, {room, userId, data}: any) => {
 	for (const client of wss.clients) {
 		if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
@@ -19,40 +21,44 @@ const sendMessages = (wss: any, {room, userId, data}: any) => {
 	}
 };
 
-const createNewMessageResponse = async (collections: any, wss: any, {roomName, userId, users, data}: any) => {
-	const {roomsCollection, usersCollection, messagesCollection} = collections;
+const createNewMessageResponse = async (payload: CreateNewMessageResponse) => {
+	const {
+		roomsCollection,
+		usersCollection,
+		messagesCollection,
+	} = payload.collections;
 	
-	const room = await roomsCollection.findOne({roomName});
+	const room = await roomsCollection.findOne({roomName: payload.roomName});
 	
 	if (room) {
 		await messagesCollection.insertOne({
 			roomId: room._id,
-			text: data.message,
-			userId,
+			text: payload.data.message,
+			userId: payload.userId,
 		});
 		
-		sendMessages(wss, {room, userId, data});
+		sendMessages(payload.wss, {room, userId: payload.userId, data: payload.data});
 	} else {
 		const [firstUserId, secondUserId] = [
-			(await usersCollection.findOne({username: users[0]}))._id,
-			(await usersCollection.findOne({username: users[1]}))._id,
+			(await usersCollection.findOne({username: payload.users[0]}))?._id,
+			(await usersCollection.findOne({username: payload.users[1]}))?._id,
 		];
 		
 		const {insertedId} = await roomsCollection.insertOne({
 			firstUserId,
 			secondUserId,
-			roomName,
+			roomName: payload.roomName,
 		});
 		
 		await messagesCollection.insertOne({
 			roomId: insertedId,
-			text: data.message,
-			userId,
+			text: payload.data.message,
+			userId: payload.userId,
 		});
 		
 		const room = await roomsCollection.findOne({_id: insertedId});
 		
-		sendMessages(wss, {room, userId, data});
+		sendMessages(payload.wss, {room, userId: payload.userId, data: payload.data});
 	}
 };
 
