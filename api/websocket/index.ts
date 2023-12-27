@@ -1,11 +1,11 @@
-const express = require('express');
-const client = require('../../services/client');
-const http = require('http');
-const WebSocket = require('ws');
-const {ObjectId} = require('mongodb');
-const createNewMessageResponse = require('./services/createNewMessageResponse');
-const createNewUserResponse = require('./services/createNewUserResponse');
-const createDeleteMessageResponse = require('./services/createDeleteMessageResponse');
+import express from 'express';
+import client from '../../services/client';
+import http from 'http';
+import WebSocket from 'ws';
+import {ObjectId} from 'mongodb';
+import createNewMessageResponse from './services/createNewMessageResponse';
+import createNewUserResponse from './services/createNewUserResponse';
+import createDeleteMessageResponse from './services/createDeleteMessageResponse';
 
 const router = express.Router();
 const app = express();
@@ -14,20 +14,20 @@ const wss = new WebSocket.Server({server});
 
 const connectedClients = new Set();
 
-wss.on('connection', async (ws, request) => {
+wss.on('connection', async (ws: any, request) => {
 	await client.connect();
 	
-	ws._id = new ObjectId(new URL(request.url, `ws://${request.headers.host}`).searchParams.get('_id'));
+	ws._id = new ObjectId(new URL(request.url ?? '', `ws://${request.headers.host}`).searchParams.get('_id') ?? '');
 	
-	const usersCollection = await client.db('main').collection('users');
+	const usersCollection = client.db('main').collection('users');
 	
-	const actualRooms = Array.from(wss.clients).map(client => client.roomName);
+	const actualRooms = Array.from(wss.clients).map((client: any) => client.roomName);
 	usersCollection.findOne({_id: new ObjectId(ws._id)}).then(async (response) => {
-		if (connectedClients.has(response._id.toString())) {
+		if (connectedClients.has(response?._id.toString())) {
 			return;
 		}
 		
-		const onlineRooms = actualRooms.filter((room) => room?.includes(response.username)).map((room) => room.split('|'));
+		const onlineRooms = actualRooms.filter((room) => room?.includes(response?.username)).map((room) => room.split('|'));
 		
 		if (onlineRooms?.length) {
 			for (const roomsUsers of onlineRooms) {
@@ -36,28 +36,28 @@ wss.on('connection', async (ws, request) => {
 				const firstUser = await usersCollection.findOne({username: firstUserUsername});
 				const secondUser = await usersCollection.findOne({username: secondUserUsername});
 				
-				const firstUserId = firstUser._id;
-				const secondUserId = secondUser._id;
+				const firstUserId = firstUser?._id;
+				const secondUserId = secondUser?._id;
 				
-				if (connectedClients.has(firstUserId.toString()) && connectedClients.has(secondUserId.toString())) {
+				if (connectedClients.has(firstUserId?.toString()) && connectedClients.has(secondUserId?.toString())) {
 					ws.send(JSON.stringify({
 						type: 'SET_ONLINE',
 						data: {
-							conversationalists: [firstUser.username, secondUser.username],
+							conversationalists: [firstUser?.username, secondUser?.username],
 						},
 					}));
-				} else if (connectedClients.has(firstUserId.toString())) {
+				} else if (connectedClients.has(firstUserId?.toString())) {
 					ws.send(JSON.stringify({
 						type: 'SET_ONLINE',
 						data: {
-							conversationalist: firstUser.username,
+							conversationalist: firstUser?.username,
 						},
 					}));
-				} else if (connectedClients.has(secondUserId.toString())) {
+				} else if (connectedClients.has(secondUserId?.toString())) {
 					ws.send(JSON.stringify({
 						type: 'SET_ONLINE',
 						data: {
-							conversationalist: secondUser.username,
+							conversationalist: secondUser?.username,
 						},
 					}));
 				}
@@ -67,20 +67,22 @@ wss.on('connection', async (ws, request) => {
 		connectedClients.add(ws._id.toString());
 	});
 	
-	ws.on('message', async (_data) => {
+	ws.on('message', async (_data: any) => {
 		const data = JSON.parse(_data);
-		const users = [data.username, data.conversationalist].toSorted();
+		
+		const users = [data.username, data.conversationalist];
+		users.sort();
+		
 		const roomName = users.join('|');
 		
-		const roomsCollection = await client.db('main').collection('rooms');
-		const messagesCollection = await client.db('main').collection('messages');
+		const roomsCollection = client.db('main').collection('rooms');
+		const messagesCollection = client.db('main').collection('messages');
 		
 		const userId = (await usersCollection.findOne({username: data.username}))?._id;
 		
 		if (!userId) return;
 		
 		ws.roomName = roomName;
-		console.log(data);
 		
 		if (data.type === 'NEW_USER') {
 			await createNewUserResponse(
@@ -104,7 +106,7 @@ wss.on('connection', async (ws, request) => {
 		}
 		
 		for (const client of Array.from(wss.clients)) {
-			if (client.roomName !== ws.roomName) continue;
+			if ((client as any).roomName !== ws.roomName) continue;
 			
 			const _id = (await roomsCollection.findOne({roomName: ws.roomName}))?._id;
 			
@@ -114,7 +116,7 @@ wss.on('connection', async (ws, request) => {
 			const secondUserId = (await roomsCollection.findOne({roomName: ws.roomName}))?.secondUserId;
 			
 			const messages = (await messagesCollection.find({roomId: _id}).toArray());
-			const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUserId.toString() ? firstUserId : secondUserId})).name;
+			const conversationalistName = (await usersCollection.findOne({_id: userId.toString() !== firstUserId.toString() ? firstUserId : secondUserId}))?.name;
 			
 			for (const message of messages) {
 				message.author = (await usersCollection.findOne({_id: message.userId}))?.name;
@@ -133,4 +135,4 @@ wss.on('connection', async (ws, request) => {
 
 server.listen(8000);
 
-module.exports = router;
+export default router;

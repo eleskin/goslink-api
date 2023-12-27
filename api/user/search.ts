@@ -1,13 +1,13 @@
-const express = require('express');
-const client = require('../../services/client');
-const authenticateJWT = require('../../services/functions/authenticateJWT');
+import express from 'express';
+import client from '../../services/client';
+import authenticateJWT from '../../services/functions/authenticateJWT';
 
 const router = express.Router();
 
 router.get('/', authenticateJWT, async (req, res) => {
 	const {username} = req.query;
 	
-	const usersCollection = await client.db('main').collection('users');
+	const usersCollection = client.db('main').collection('users');
 	const users = await usersCollection.find({username}).toArray();
 	
 	res.send({
@@ -16,4 +16,4 @@ router.get('/', authenticateJWT, async (req, res) => {
 	});
 });
 
-module.exports = router;
+export default router;

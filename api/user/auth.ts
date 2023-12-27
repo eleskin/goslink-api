@@ -1,8 +1,8 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const client = require('../../services/client');
-const authenticateJWT = require('../../services/functions/authenticateJWT');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import client from '../../services/client';
+import authenticateJWT from '../../services/functions/authenticateJWT';
 
 const router = express.Router();
 const saltRounds = 10;
@@ -15,19 +15,19 @@ router.post('/', (req, res) => {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err) => {
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET ?? '', async (err) => {
 		if (err) {
 			return res.status(401).send();
 		}
 		
-		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET ?? '', async (err: any, user: any) => {
 			if (err) {
 				return res.status(403).send();
 			}
 			
-			const roomsCollection = await client.db('main').collection('rooms');
-			const usersCollection = await client.db('main').collection('users');
-			const messagesCollection = await client.db('main').collection('messages');
+			const roomsCollection = client.db('main').collection('rooms');
+			const usersCollection = client.db('main').collection('users');
+			const messagesCollection = client.db('main').collection('messages');
 			const users = await usersCollection.find({email: user.email}).toArray();
 			
 			// const messagesCollection = await client.db('main').collection('messages');
@@ -51,14 +51,14 @@ router.post('/', (req, res) => {
 			
 			const accessToken = jwt.sign(
 				{email: user.email},
-				process.env.ACCESS_TOKEN_SECRET,
+				process.env.ACCESS_TOKEN_SECRET ?? '',
 				{expiresIn: '1h'},
 			);
 			
 			for (const room of rooms) {
 				const conversationalistId = room.firstUserId.toString() === users?.[0]?._id.toString() ? room.secondUserId : room.firstUserId;
-				room.conversationalist = (await usersCollection.findOne({_id: conversationalistId})).username;
-				room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId})).name;
+				room.conversationalist = (await usersCollection.findOne({_id: conversationalistId}))?.username;
+				room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId}))?.name;
 				const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);
 				room.lastMessage = (await messages.toArray())[0]?.text;
 			}
@@ -91,8 +91,8 @@ router.post('/register', async (req, res) => {
 				message: 'A user with this email address already exists',
 			});
 		} else {
-			const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-			const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+			const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET ?? '', {expiresIn: '1h'});
+			const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET ?? '', {expiresIn: '1d'});
 			
 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
 			
@@ -116,8 +116,8 @@ router.post('/login', async (req, res) => {
 	} else {
 		bcrypt.compare(password, users?.[0]?.password, (err, result) => {
 			if (result) {
-				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
+				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET ?? '', {expiresIn: '1h'});
+				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET ?? '', !remember ? {expiresIn: '1d'} : {});
 				
 				usersCollection.replaceOne({email}, {...users?.[0], refreshToken});
 				
@@ -141,7 +141,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET ?? '', async (err: any, user: any) => {
 		if (err) {
 			return res.status(403).send();
 		}
@@ -155,4 +155,4 @@ router.post('/logout', authenticateJWT, (req, res) => {
 	});
 });
 
-module.exports = router;
+export default router;

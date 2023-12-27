@@ -1,18 +1,17 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+import apiUserAuthRouter from './api/user/auth';
+import apiUserSearchRouter from './api/user/search';
+import apiChatRouter from './api/chat';
+import apiWebSocketRouter from './api/websocket';
 
 dotenv.config();
-
-const apiUserAuthRouter = require('./api/user/auth');
-const apiUserSearchRouter = require('./api/user/search');
-const apiChatRouter = require('./api/chat');
-const apiWebSocketRouter = require('./api/websocket');
-
 const app = express();
 
 app.use(cors());
@@ -39,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res) => {
+app.use((err: any, req, res: any) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

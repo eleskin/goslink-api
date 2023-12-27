@@ -1,4 +1,4 @@
-const createNewUserResponse = async (collections, ws, wss, data) => {
+const createNewUserResponse = async (collections: any, ws: any, wss: any, data: any) => {
 	const {usersCollection} = collections;
 	
 	const conversationalist = await usersCollection.findOne({username: data.conversationalist});
@@ -21,4 +21,4 @@ const createNewUserResponse = async (collections, ws, wss, data) => {
 	}));
 };
 
-module.exports = createNewUserResponse;
+export default createNewUserResponse;

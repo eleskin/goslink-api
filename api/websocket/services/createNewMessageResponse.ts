@@ -1,4 +1,4 @@
-const sendMessages = (wss, {room, userId, data}) => {
+const sendMessages = (wss: any, {room, userId, data}: any) => {
 	for (const client of wss.clients) {
 		if (client._id.toString() === (room.firstUserId === userId ? room.secondUserId : room.firstUserId).toString()) {
 			client.send(JSON.stringify({
@@ -19,7 +19,7 @@ const sendMessages = (wss, {room, userId, data}) => {
 	}
 };
 
-const createNewMessageResponse = async (collections, wss, {roomName, userId, users, data}) => {
+const createNewMessageResponse = async (collections: any, wss: any, {roomName, userId, users, data}: any) => {
 	const {roomsCollection, usersCollection, messagesCollection} = collections;
 	
 	const room = await roomsCollection.findOne({roomName});
@@ -56,4 +56,4 @@ const createNewMessageResponse = async (collections, wss, {roomName, userId, use
 	}
 };
 
-module.exports = createNewMessageResponse;
+export default createNewMessageResponse;
