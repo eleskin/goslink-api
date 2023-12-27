@@ -18,8 +18,7 @@ wss.on('connection', async (ws: WebSocket & {_id: string}, request) => {
 	ws._id = _id;
 	
 	await client.connect();
-	
-	handleConnectionWebSocket();
+	await handleConnectionWebSocket(client, wss, ws, connectedClients);
 	
 	ws.on('message', handleMessageWebSocket);
 	
