@@ -22,14 +22,15 @@ const handleMessageWebSocket = async (
 	client: MongoClient,
 	wss: WebSocket.Server,
 	ws: WebSocket & { roomName: string },
-	_data: string,
+	dataJSON: string,
 ) => {
-	const data = JSON.parse(_data);
+	const data = JSON.parse(dataJSON);
 	
 	const users = [data.username, data.conversationalist];
 	users.sort();
 	
 	const roomName = users.join('|');
+	ws.roomName = roomName;
 	
 	const usersCollection = client.db('main').collection('users');
 	const roomsCollection = client.db('main').collection('rooms');
@@ -38,8 +39,6 @@ const handleMessageWebSocket = async (
 	const userId = (await usersCollection.findOne({username: data.username}))?._id;
 	
 	if (!userId) return;
-	
-	ws.roomName = roomName;
 	
 	if (data.type === 'NEW_USER') {
 		await createNewUserResponse(
