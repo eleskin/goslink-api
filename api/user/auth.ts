@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import client from '../../services/client';
 import authenticateJWT from '../../services/functions/authenticateJWT';
+import 'dotenv/config';
 
 const router = express.Router();
 const saltRounds = 10;
