@@ -1,4 +1,4 @@
-import CreateNewMessageResponse from '../interfaces/CreateNewMessageResponse';
+import NewMessageResponse from '../interfaces/NewMessageResponse';
 
 const sendMessages = (wss: any, {room, userId, data}: any) => {
 	for (const client of wss.clients) {
@@ -21,7 +21,7 @@ const sendMessages = (wss: any, {room, userId, data}: any) => {
 	}
 };
 
-const createNewMessageResponse = async (payload: CreateNewMessageResponse) => {
+const createNewMessageResponse = async (payload: NewMessageResponse) => {
 	const {
 		roomsCollection,
 		usersCollection,

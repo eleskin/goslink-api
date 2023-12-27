@@ -1,7 +1,7 @@
 import {Collection, ObjectId} from 'mongodb';
 import WebSocket from 'ws';
 
-interface CreateNewMessageResponse {
+interface NewMessageResponse {
 	collections: { [key: string]: Collection };
 	wss: WebSocket.Server;
 	roomName: string;
@@ -10,4 +10,4 @@ interface CreateNewMessageResponse {
 	data: any;
 }
 
-export default CreateNewMessageResponse;
+export default NewMessageResponse;

@@ -1,9 +1,10 @@
 import {ObjectId} from 'mongodb';
+import DeleteMessageResponse from '../interfaces/DeleteMessageResponse';
 
-const createDeleteMessageResponse = async (collections: any, wss: any, {_id}: any) => {
-	const {messagesCollection} = collections;
+const createDeleteMessageResponse = async (payload: DeleteMessageResponse) => {
+	const {messagesCollection} = payload.collections;
 	
-	messagesCollection.deleteOne({_id: new ObjectId(_id)});
+	await messagesCollection.deleteOne({_id: new ObjectId(payload.data._id)});
 };
 
 export default createDeleteMessageResponse;

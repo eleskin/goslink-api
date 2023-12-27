@@ -4,17 +4,19 @@ import createNewMessageResponse from '../services/createNewMessageResponse';
 import createDeleteMessageResponse from '../services/createDeleteMessageResponse';
 import WebSocket from 'ws';
 import {MongoClient} from 'mongodb';
-import CreateNewMessageResponse from '../interfaces/CreateNewMessageResponse';
+import NewMessageResponse from '../interfaces/NewMessageResponse';
+import DeleteMessageResponse from '../interfaces/DeleteMessageResponse';
 
 const messageHandlers: { [key in webSocketResponseMessagesTypes]: Function } = {
-	NEW_MESSAGE: async (payload: CreateNewMessageResponse) => {
+	NEW_MESSAGE: async (payload: NewMessageResponse) => {
 		await createNewMessageResponse(payload);
 	},
 	GET_MESSAGES: () => {
 	},
 	EDIT_MESSAGE: () => {
 	},
-	DELETE_MESSAGE: () => {
+	DELETE_MESSAGE: async (payload: DeleteMessageResponse) => {
+		await createDeleteMessageResponse(payload);
 	},
 };
 
@@ -57,11 +59,10 @@ const handleMessageWebSocket = async (
 			data,
 		});
 	} else if (data.type === 'DELETE_MESSAGE') {
-		await createDeleteMessageResponse(
-			{messagesCollection},
-			wss,
+		await messageHandlers['DELETE_MESSAGE']({
+			collections: {messagesCollection},
 			data,
-		);
+		});
 	}
 	
 	for (const client of Array.from(wss.clients)) {
