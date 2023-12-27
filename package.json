@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npx tsc && node ./bin/www"
+    "start": "npx tsc && node ./bin/www",
+    "dev": "nodemon"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -28,6 +29,8 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.10.5",
     "@types/ws": "^8.5.10",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
