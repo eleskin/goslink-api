@@ -28,27 +28,37 @@ const handleMessageWebSocket = async (
 	
 	if (!userId) return;
 	
-	if (data.type === 'NEW_USER') {
-		await createNewUserResponse(
-			{usersCollection},
-			ws,
-			wss,
-			data,
-		);
-	} else if (data.type === 'NEW_MESSAGE') {
-		await createNewMessageResponse({
-			collections: {roomsCollection, usersCollection, messagesCollection},
-			wss,
-			roomName,
-			userId,
-			users,
-			data,
-		});
-	} else if (data.type === 'DELETE_MESSAGE') {
-		await createDeleteMessageResponse({
-			collections: {messagesCollection},
-			data,
-		});
+	
+	switch (data.type) {
+		case 'NEW_USER':
+			await createNewUserResponse(
+				{usersCollection},
+				ws,
+				wss,
+				data,
+			);
+			break;
+		
+		case 'NEW_MESSAGE':
+			await createNewMessageResponse({
+				collections: {roomsCollection, usersCollection, messagesCollection},
+				wss,
+				roomName,
+				userId,
+				users,
+				data,
+			});
+			break;
+		
+		case 'DELETE_MESSAGE':
+			await createDeleteMessageResponse({
+				collections: {messagesCollection},
+				data,
+			});
+			break;
+		
+		default:
+			break;
 	}
 	
 	await createNewMessagesResponse(
