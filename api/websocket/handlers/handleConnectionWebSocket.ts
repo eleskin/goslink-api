@@ -1,6 +1,25 @@
 import {MongoClient, ObjectId} from 'mongodb';
 import WebSocket from 'ws';
 
+const createResponse = (
+	ws: WebSocket,
+	hasFirstUser: boolean,
+	hasSecondUser: boolean,
+	firstUsername: string,
+	secondUsername: string,
+) => {
+	let conversationalists: string[] = [];
+	
+	if (hasFirstUser && hasSecondUser) conversationalists = [firstUsername, secondUsername];
+	else if (hasFirstUser) conversationalists = [firstUsername];
+	else if (hasSecondUser) conversationalists = [secondUsername];
+	
+	return () => ws.send(JSON.stringify({
+		type: 'SET_ONLINE',
+		data: {conversationalists},
+	}));
+};
+
 const handleConnectionWebSocket = async (
 	client: MongoClient,
 	wss: WebSocket.Server,
@@ -31,28 +50,13 @@ const handleConnectionWebSocket = async (
 			const firstUserId = firstUser._id;
 			const secondUserId = secondUser._id;
 			
-			if (connectedClients.has(firstUserId.toString()) && connectedClients.has(secondUserId.toString())) {
-				ws.send(JSON.stringify({
-					type: 'SET_ONLINE',
-					data: {
-						conversationalists: [firstUser.username, secondUser.username],
-					},
-				}));
-			} else if (connectedClients.has(firstUserId?.toString())) {
-				ws.send(JSON.stringify({
-					type: 'SET_ONLINE',
-					data: {
-						conversationalist: firstUser.username,
-					},
-				}));
-			} else if (connectedClients.has(secondUserId?.toString())) {
-				ws.send(JSON.stringify({
-					type: 'SET_ONLINE',
-					data: {
-						conversationalist: secondUser.username,
-					},
-				}));
-			}
+			createResponse(
+				ws,
+				connectedClients.has(firstUserId.toString()),
+				connectedClients.has(secondUserId.toString()),
+				firstUser.username,
+				secondUser.username,
+			)();
 		}
 	}
 	
