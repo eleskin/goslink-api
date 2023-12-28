@@ -1,24 +1,8 @@
-import {webSocketResponseMessagesTypes} from '../types';
 import createNewUserResponse from '../services/createNewUserResponse';
 import createNewMessageResponse from '../services/createNewMessageResponse';
 import createDeleteMessageResponse from '../services/createDeleteMessageResponse';
 import WebSocket from 'ws';
 import {MongoClient} from 'mongodb';
-import NewMessageResponse from '../interfaces/NewMessageResponse';
-import DeleteMessageResponse from '../interfaces/DeleteMessageResponse';
-
-const messageHandlers: { [key in webSocketResponseMessagesTypes]: Function } = {
-	NEW_MESSAGE: async (payload: NewMessageResponse) => {
-		await createNewMessageResponse(payload);
-	},
-	GET_MESSAGES: () => {
-	},
-	EDIT_MESSAGE: () => {
-	},
-	DELETE_MESSAGE: async (payload: DeleteMessageResponse) => {
-		await createDeleteMessageResponse(payload);
-	},
-};
 
 const handleMessageWebSocket = async (
 	client: MongoClient,
@@ -50,7 +34,7 @@ const handleMessageWebSocket = async (
 			data,
 		);
 	} else if (data.type === 'NEW_MESSAGE') {
-		await messageHandlers['NEW_MESSAGE']({
+		await createNewMessageResponse({
 			collections: {roomsCollection, usersCollection, messagesCollection},
 			wss,
 			roomName,
@@ -59,7 +43,7 @@ const handleMessageWebSocket = async (
 			data,
 		});
 	} else if (data.type === 'DELETE_MESSAGE') {
-		await messageHandlers['DELETE_MESSAGE']({
+		await createDeleteMessageResponse({
 			collections: {messagesCollection},
 			data,
 		});
