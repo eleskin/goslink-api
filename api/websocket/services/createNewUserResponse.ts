@@ -3,6 +3,8 @@ const createNewUserResponse = async (collections: any, ws: any, wss: any, data: 
 	
 	const conversationalist = await usersCollection.findOne({username: data.conversationalist});
 	
+	if (!conversationalist) return;
+	
 	for (const client of wss.clients) {
 		if (client._id.toString() === conversationalist._id.toString()) {
 			
