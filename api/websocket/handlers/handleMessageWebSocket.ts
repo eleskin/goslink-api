@@ -28,7 +28,6 @@ const handleMessageWebSocket = async (
 	
 	if (!userId) return;
 	
-	
 	switch (data.type) {
 		case 'NEW_USER':
 			await createNewUserResponse(
