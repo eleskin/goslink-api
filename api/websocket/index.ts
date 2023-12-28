@@ -25,7 +25,7 @@ wss.on(
 		
 		ws.on('message', (data: string) => handleMessageWebSocket(client, wss, ws, data));
 		
-		ws.on('close', () => handleCloseWebSocket(connectedClients, _id));
+		ws.on('close', () => handleCloseWebSocket(wss, connectedClients, _id));
 	});
 
 export default app;

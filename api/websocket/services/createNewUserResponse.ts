@@ -3,13 +3,17 @@ const createNewUserResponse = async (collections: any, ws: any, wss: any, data: 
 	
 	const conversationalist = await usersCollection.findOne({username: data.conversationalist});
 	
-	if (!conversationalist) return;
-	
 	for (const client of wss.clients) {
-		if (client._id.toString() === conversationalist._id.toString()) {
-			
+		if (conversationalist && client._id.toString() === conversationalist._id.toString()) {
 			client.send(JSON.stringify({
-				type: data.online ? 'SET_ONLINE' : 'SET_OFFLINE',
+				type: 'SET_ONLINE',
+				data: {
+					'conversationalist': data.username,
+				},
+			}));
+		} else if (conversationalist && client._id.toString() !== conversationalist._id.toString()) {
+			client.send(JSON.stringify({
+				type: 'SET_OFFLINE',
 				data: {
 					'conversationalist': data.username,
 				},
@@ -17,10 +21,10 @@ const createNewUserResponse = async (collections: any, ws: any, wss: any, data: 
 		}
 	}
 	
-	ws.send(JSON.stringify({
-		type: data.type,
-		conversationalistName: (await usersCollection.findOne({username: data.conversationalist})).name,
-	}));
+	// ws.send(JSON.stringify({
+	// 	type: data.type,
+	// 	conversationalistName: (await usersCollection.findOne({username: data.conversationalist}))?.name,
+	// }));
 };
 
 export default createNewUserResponse;
