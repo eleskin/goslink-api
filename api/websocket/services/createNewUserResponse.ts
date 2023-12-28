@@ -11,7 +11,9 @@ const createNewUserResponse = async (collections: any, ws: any, wss: any, data: 
 					'conversationalist': data.username,
 				},
 			}));
-		} else if (conversationalist && client._id.toString() !== conversationalist._id.toString()) {
+			continue;
+		}
+		if (!data.online) {
 			client.send(JSON.stringify({
 				type: 'SET_OFFLINE',
 				data: {

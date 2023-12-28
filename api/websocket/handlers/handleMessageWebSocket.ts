@@ -18,7 +18,6 @@ const handleMessageWebSocket = async (
 	const roomName = data.username && data.conversationalist ? users.join('|') : '';
 	
 	if (roomName) ws.roomName = roomName;
-	console.log(ws.roomName);
 	
 	const usersCollection = client.db('main').collection('users');
 	const roomsCollection = client.db('main').collection('rooms');
