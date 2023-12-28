@@ -21,10 +21,10 @@ const createNewUserResponse = async (collections: any, ws: any, wss: any, data: 
 		}
 	}
 	
-	// ws.send(JSON.stringify({
-	// 	type: data.type,
-	// 	conversationalistName: (await usersCollection.findOne({username: data.conversationalist}))?.name,
-	// }));
+	ws.send(JSON.stringify({
+		type: data.type,
+		conversationalistName: (await usersCollection.findOne({username: data.conversationalist}))?.name,
+	}));
 };
 
 export default createNewUserResponse;
