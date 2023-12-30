@@ -118,10 +118,7 @@ const messageService = async (ws: WebSocket & { _id: string; roomId: string }, p
 			});
 	}
 	
-	return JSON.stringify({
-		type: 'type',
-		data: [],
-	});
+	return JSON.stringify(null);
 };
 
 export default messageService;

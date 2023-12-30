@@ -29,8 +29,6 @@ router.post('/rooms', authenticateJWT, async (req, res) => {
 		room.lastMessage = (await messages.toArray())[0]?.text;
 	}
 	
-	console.log(rooms)
-	
 	return res.status(200).send({
 		rooms,
 	});
