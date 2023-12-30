@@ -2,7 +2,9 @@ import WebSocket from 'ws';
 import getParamFromUrl from '../../../services/functions/getIdFromUrl';
 import {ObjectId} from 'mongodb';
 import http from 'http';
-import getCollections from '../services/getCollections';
+import getCollections from '../utils/getCollections';
+import webSocketHandleMessage from './webSocketHandleMessage';
+import webSocketHandleError from './webSocketHandleError';
 
 const webSocketHandleConnection = async (
 	ws: WebSocket & { _id: string; roomId: string },
@@ -22,11 +24,8 @@ const webSocketHandleConnection = async (
 		data: {rooms},
 	}));
 	
-	ws.on('message', (payload: any) => {
-	
-	});
-	ws.on('error', () => {
-	});
+	ws.on('message', webSocketHandleMessage);
+	ws.on('error', webSocketHandleError);
 };
 
 export default webSocketHandleConnection;
