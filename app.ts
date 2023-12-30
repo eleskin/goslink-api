@@ -6,9 +6,9 @@ import logger from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import apiUserAuthRouter from './api/user/auth';
-import apiUserSearchRouter from './api/user/search';
-import apiChatRouter from './api/chat';
+import apiUserAuthRouter from './legacy_api/user/auth';
+import apiUserSearchRouter from './legacy_api/user/search';
+import apiChatRouter from './legacy_api/chat';
 import apiWebSocketRouter from './api/websocket';
 
 dotenv.config();
