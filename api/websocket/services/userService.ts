@@ -2,7 +2,7 @@ import getCollections from '../utils/getCollections';
 import {ObjectId} from 'mongodb';
 import WebSocket from 'ws';
 
-const getUser = async (payload: { type: string; data: any }) => {
+export const getUser = async (payload: { type: string; data: any }) => {
 	const {usersCollection} = await getCollections();
 	
 	return await usersCollection.findOne({_id: new ObjectId(payload.data.conversationalistId)});

@@ -1,6 +1,7 @@
 import getCollections from '../utils/getCollections';
 import WebSocket from 'ws';
 import {ObjectId} from 'mongodb';
+import {getUser} from './userService';
 
 const getMessage = async (ws: WebSocket & { _id: string; roomId: string }) => {
 	const userObjectId = new ObjectId(ws._id);
@@ -43,13 +44,13 @@ const newMessage = async (ws: WebSocket & { _id: string; roomId: string }, paylo
 	} = await getCollections();
 	
 	const user = await usersCollection.findOne({
-		_id: userObjectId
+		_id: userObjectId,
 	});
 	
 	if (!user) return null;
 	
 	const conversationalist = await usersCollection.findOne({
-		_id: new ObjectId(payload.data.conversationalistId)
+		_id: new ObjectId(payload.data.conversationalistId),
 	});
 	
 	if (!conversationalist) return null;
@@ -74,14 +75,14 @@ const newMessage = async (ws: WebSocket & { _id: string; roomId: string }, paylo
 	if (!message) return null;
 	
 	message.author = user.name ?? '';
-
+	
 	return message;
 };
 
 const deleteMessage = async (payload: { type: string, data: any }) => {
 	const {messagesCollection} = await getCollections();
 	
-	await messagesCollection.deleteOne({_id: new ObjectId(payload.data._id)})
+	await messagesCollection.deleteOne({_id: new ObjectId(payload.data._id)});
 	
 	return payload.data._id;
 };
@@ -98,6 +99,7 @@ const messageService = async (ws: WebSocket & { _id: string; roomId: string }, p
 				type,
 				data: {
 					messages: await getMessage(ws),
+					user: await getUser(payload),
 				},
 			});
 		
