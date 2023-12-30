@@ -1,7 +1,6 @@
 import getCollections from '../utils/getCollections';
 import WebSocket from 'ws';
 import {ObjectId} from 'mongodb';
-import {getUser} from './userService';
 
 export const getMessage = async (ws: WebSocket & { _id: string; roomId: string }) => {
 	const userObjectId = new ObjectId(ws._id);
@@ -99,7 +98,6 @@ const messageService = async (ws: WebSocket & { _id: string; roomId: string }, p
 				type,
 				data: {
 					messages: await getMessage(ws),
-					user: await getUser(payload),
 				},
 			});
 		
