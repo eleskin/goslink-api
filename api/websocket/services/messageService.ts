@@ -78,11 +78,19 @@ const newMessage = async (ws: WebSocket & { _id: string; roomId: string }, paylo
 	return message;
 };
 
+const deleteMessage = async (payload: { type: string, data: any }) => {
+	const {messagesCollection} = await getCollections();
+	
+	await messagesCollection.deleteOne({_id: new ObjectId(payload.data._id)})
+	
+	return payload.data._id;
+};
+
 const messageService = async (ws: WebSocket & { _id: string; roomId: string }, payload: {
 	type: string;
 	data: any
 }) => {
-	const {type, data} = payload;
+	const {type} = payload;
 	
 	switch (type) {
 		case 'GET_MESSAGE':
@@ -98,6 +106,14 @@ const messageService = async (ws: WebSocket & { _id: string; roomId: string }, p
 				type,
 				data: {
 					message: await newMessage(ws, payload),
+				},
+			});
+		
+		case 'DELETE_MESSAGE':
+			return JSON.stringify({
+				type,
+				data: {
+					message: await deleteMessage(payload),
 				},
 			});
 	}
