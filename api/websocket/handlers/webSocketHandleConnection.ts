@@ -24,7 +24,7 @@ const webSocketHandleConnection = async (
 		data: {rooms},
 	}));
 	
-	ws.on('message', webSocketHandleMessage);
+	ws.on('message', (payload: string) => webSocketHandleMessage(JSON.parse(payload)));
 	ws.on('error', webSocketHandleError);
 };
 
