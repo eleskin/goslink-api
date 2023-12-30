@@ -19,12 +19,14 @@ const webSocketHandleConnection = async (
 		$or: [{firstUserId: new ObjectId(ws._id)}, {secondUserId: new ObjectId(ws._id)}],
 	}).toArray();
 	
-	ws.send(JSON.stringify({
-		type: 'GET_MESSAGES',
-		data: {rooms},
-	}));
+	// ws.send(JSON.stringify({
+	// 	type: 'GET_MESSAGES',
+	// 	data: {rooms},
+	// }));
 	
-	ws.on('message', (payload: string) => webSocketHandleMessage(JSON.parse(payload)));
+	ws.on('message', (payload: string) => {
+		webSocketHandleMessage(ws, JSON.parse(payload));
+	});
 	ws.on('error', webSocketHandleError);
 };
 
