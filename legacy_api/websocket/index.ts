@@ -6,7 +6,7 @@ import handleMessageWebSocket from './handlers/handleMessageWebSocket';
 import handleCloseWebSocket from './handlers/handleCloseWebSocket';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
 import client from '../../services/client';
-import app from './services/_websocket';
+import app from '../../api/websocket';
 
 
 // const server = http.createServer(app).listen(8000);
