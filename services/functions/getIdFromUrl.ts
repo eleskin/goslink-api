@@ -1,9 +1,9 @@
 import http from 'http';
 
-const getIdFromUrl = (request: http.IncomingMessage): string => {
+const getParamFromUrl = (request: http.IncomingMessage, param: string): string => {
 	const url = new URL(request.url ?? '', `ws://${request.headers.host}`);
 	
-	return url.searchParams.get('_id') ?? '';
+	return url.searchParams.get(param) ?? '';
 };
 
-export default getIdFromUrl;
+export default getParamFromUrl;
