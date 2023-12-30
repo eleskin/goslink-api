@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import {ObjectId} from 'mongodb';
 import {getUser} from './userService';
 
-const getMessage = async (ws: WebSocket & { _id: string; roomId: string }) => {
+export const getMessage = async (ws: WebSocket & { _id: string; roomId: string }) => {
 	const userObjectId = new ObjectId(ws._id);
 	
 	const {

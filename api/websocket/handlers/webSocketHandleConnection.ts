@@ -5,6 +5,7 @@ import http from 'http';
 import getCollections from '../utils/getCollections';
 import webSocketHandleMessage from './webSocketHandleMessage';
 import webSocketHandleError from './webSocketHandleError';
+import {getMessage} from '../services/messageService';
 
 const webSocketHandleConnection = async (
 	ws: WebSocket & { _id: string; roomId: string },
@@ -33,7 +34,10 @@ const webSocketHandleConnection = async (
 	
 	ws.send(JSON.stringify({
 		type: 'GET_ROOMS',
-		data: {rooms},
+		data: {
+			rooms,
+			messages: await getMessage(ws),
+		},
 	}));
 	
 	ws.on('message', (payload: string) => {
