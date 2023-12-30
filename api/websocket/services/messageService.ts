@@ -23,7 +23,6 @@ export const getMessage = async (ws: WebSocket & { _id: string; roomId: string }
 	
 	const messages = await messagesCollection.find({
 		roomId: new ObjectId(room._id),
-		userId: userObjectId,
 	}).toArray();
 	
 	for (const message of messages) {
