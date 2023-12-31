@@ -18,7 +18,7 @@ const webSocketHandleMessage = async (ws: WebSocket & { _id: string; roomId: str
 			return;
 		
 		case 'USER':
-			ws.send(await userService(ws, payload));
+			sendResponse(ws, wss, await userService(ws, payload));
 			return;
 	}
 };
