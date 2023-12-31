@@ -9,10 +9,10 @@ import {getMessage} from '../services/messageService';
 
 const webSocketHandleConnection = async (
 	ws: WebSocket & { _id: string; roomId: string },
+	wss: WebSocket.Server,
 	request: http.IncomingMessage,
 ) => {
 	ws._id = getParamFromUrl(request, '_id') ?? '';
-	ws.roomId = getParamFromUrl(request, 'room_id') ?? '';
 	
 	const {roomsCollection, usersCollection, messagesCollection} = await getCollections();
 	
@@ -41,7 +41,7 @@ const webSocketHandleConnection = async (
 	}));
 	
 	ws.on('message', (payload: string) => {
-		webSocketHandleMessage(ws, JSON.parse(payload));
+		webSocketHandleMessage(ws, wss, JSON.parse(payload));
 	});
 	ws.on('error', webSocketHandleError);
 };

@@ -25,6 +25,8 @@ export const getMessage = async (ws: WebSocket & { _id: string; roomId: string }
 		roomId: new ObjectId(room._id),
 	}).toArray();
 	
+	ws.roomId = room._id.toString();
+	
 	for (const message of messages) {
 		message.author = user.name ?? '';
 	}
