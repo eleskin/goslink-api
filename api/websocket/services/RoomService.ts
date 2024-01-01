@@ -54,7 +54,7 @@ class RoomService extends WebSocketService {
 		const rooms = [];
 		
 		for (const _id of allId) {
-			const room = await usersCollection.findOne({_id: new ObjectId(_id)})
+			const room = await usersCollection.findOne({_id: new ObjectId(_id)});
 			
 			if (room) {
 				const key1 = `${userId}_${_id}`;
@@ -62,7 +62,7 @@ class RoomService extends WebSocketService {
 				
 				const lastMessage = (sortedMessages[key1] || sortedMessages[key2] || null)?.text ?? '';
 				
-				rooms.push({ ...room, lastMessage });
+				rooms.push({...room, lastMessage});
 			}
 		}
 		
