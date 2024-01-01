@@ -18,6 +18,8 @@ class MessageService extends WebSocketService {
 		switch (this.payload?.type) {
 			case 'NEW_MESSAGE':
 				return await this.newMessage();
+			case 'DELETE_MESSAGE':
+				return await this.deleteMessage();
 		}
 		
 		return () => {
@@ -37,6 +39,18 @@ class MessageService extends WebSocketService {
 				author: authorName,
 			},
 		} ?? null;
+	}
+	
+	private static async deleteMessage() {
+		const _id = this.payload?.data._id ?? '';
+		
+		const messagesCollection = await this.getCollection('messages');
+		
+		await messagesCollection.deleteOne({_id: new ObjectId(_id)});
+		
+		return {
+			messageId: _id,
+		};
 	}
 }
 
