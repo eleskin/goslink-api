@@ -37,6 +37,15 @@ class RoomService extends WebSocketService {
 			],
 		}).toArray();
 		
+		const sortedMessages = messages.reduce((acc: any, message) => {
+			const ids = [message.userId, message.contactId].sort();
+			const key = `${ids[0]}_${ids[1]}`;
+			
+			acc[key] = message;
+			
+			return acc;
+		}, {});
+		
 		const usersId = new Set(messages.map((message) => message.userId.toString()));
 		const contactsId = new Set(messages.map((message) => message.contactId.toString()));
 		
@@ -45,7 +54,16 @@ class RoomService extends WebSocketService {
 		const rooms = [];
 		
 		for (const _id of allId) {
-			rooms.push(await usersCollection.findOne({_id: new ObjectId(_id)}));
+			const room = await usersCollection.findOne({_id: new ObjectId(_id)})
+			
+			if (room) {
+				const key1 = `${userId}_${_id}`;
+				const key2 = `${_id}_${userId}`;
+				
+				const lastMessage = (sortedMessages[key1] || sortedMessages[key2] || null)?.text ?? '';
+				
+				rooms.push({ ...room, lastMessage });
+			}
 		}
 		
 		return {
