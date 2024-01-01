@@ -1,9 +1,8 @@
 import {Payload} from '../types';
-import client from '../../../services/client';
+import WebSocketService from './WebSocketService';
 
-class MessageService {
+class MessageService extends WebSocketService {
 	private static payload: Payload | undefined;
-	private static mongoDbClient = client.connect();
 	
 	public static async setPayload(payload: Payload) {
 		this.payload = payload;
@@ -25,7 +24,13 @@ class MessageService {
 	}
 	
 	private static async newMessage() {
-	
+		const messagesCollection = await this.getCollection('messages');
+		
+		const {insertedId} = await messagesCollection.insertOne(this.payload?.data ?? {});
+		
+		return {
+			message: await messagesCollection.findOne({_id: insertedId}),
+		} ?? null;
 	}
 }
 
