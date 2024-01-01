@@ -1,5 +1,6 @@
 import client from '../../../services/client';
 import {Payload} from '../types';
+import {ObjectId} from 'mongodb';
 
 class UserService {
 	private static payload: Payload | undefined;
@@ -22,6 +23,9 @@ class UserService {
 		switch (this.payload?.type) {
 			case 'SEARCH_USER':
 				return await this.searchUser();
+				
+			case 'GET_USER':
+				return await this.getUser();
 		}
 		
 		return () => {
@@ -35,6 +39,16 @@ class UserService {
 		
 		return {
 			user: await usersCollection.findOne({username: contactUsername}),
+		} ?? null;
+	}
+	
+	private static async getUser() {
+		const contactId = this.payload?.data.contactId ?? '';
+		
+		const usersCollection = await this.getCollection('users');
+		
+		return {
+			user: await usersCollection.findOne({_id: new ObjectId(contactId)}),
 		} ?? null;
 	}
 }
