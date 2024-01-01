@@ -16,10 +16,6 @@ wss.on('connection', (ws) => {
 		
 		if (!data) return;
 		
-		console.log(JSON.stringify({
-			type: payload.type,
-			data,
-		}));
 		ws.send(JSON.stringify({
 			type: payload.type,
 			data,

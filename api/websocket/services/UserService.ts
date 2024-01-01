@@ -7,7 +7,7 @@ class UserService {
 	
 	public static async setPayload(payload: Payload) {
 		this.payload = payload;
-
+		
 		return await this.getData();
 	}
 	
@@ -33,7 +33,9 @@ class UserService {
 		
 		const usersCollection = await this.getCollection('users');
 		
-		return await usersCollection.findOne({username: contactUsername});
+		return {
+			user: await usersCollection.findOne({username: contactUsername}),
+		} ?? null;
 	}
 }
 
