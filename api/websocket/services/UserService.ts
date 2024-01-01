@@ -1,19 +1,15 @@
 import client from '../../../services/client';
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
+import WebSocketService from './WebSocketService';
 
-class UserService {
+class UserService extends WebSocketService {
 	private static payload: Payload | undefined;
-	private static mongoDbClient = client.connect();
 	
 	public static async setPayload(payload: Payload) {
 		this.payload = payload;
 		
 		return await this.getData();
-	}
-	
-	private static async getCollection(collection: string) {
-		return (await this.mongoDbClient).db('main').collection(collection);
 	}
 	
 	private static async getData() {
