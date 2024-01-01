@@ -30,7 +30,7 @@ class MessageService extends WebSocketService {
 		const messagesCollection = await this.getCollection('messages');
 		const usersCollection = await this.getCollection('users');
 		
-		// const {insertedId} = await messagesCollection.insertOne(this.payload?.data ?? {});
+		console.log();
 		const {insertedId} = await messagesCollection.insertOne({
 			userId: new ObjectId(this.payload?.data.userId),
 			contactId: new ObjectId(this.payload?.data.contactId),
