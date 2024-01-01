@@ -47,8 +47,8 @@ class UserService extends WebSocketService {
 		
 		const messages = await messagesCollection.find({
 			$or: [
-				{$and: [{contactId, userId}]},
-				{$and: [{contactId: userId, userId: contactId}]},
+				{$and: [{contactId: new ObjectId(contactId), userId: new ObjectId(userId)}]},
+				{$and: [{contactId: new ObjectId(userId), userId: new ObjectId(contactId)}]},
 			],
 		}).toArray();
 		

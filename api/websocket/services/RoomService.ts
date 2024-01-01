@@ -28,25 +28,29 @@ class RoomService extends WebSocketService {
 		const userId = this.payload?.data.userId;
 		
 		const messagesCollection = await this.getCollection('messages');
+		const usersCollection = await this.getCollection('users');
 		
-		console.log(new ObjectId(userId));
-		console.log(await messagesCollection.find({
+		const messages = await messagesCollection.find({
 			$or: [
 				{userId: new ObjectId(userId)},
-				{contactId: new ObjectId(userId)}
-			]
-		}).toArray());
-		// const usersCollection = await this.getCollection('users');
-		//
-		// const {insertedId} = await messagesCollection.insertOne(this.payload?.data ?? {});
-		// const authorName = (await usersCollection.findOne({_id: new ObjectId(this.payload?.data.userId)}))?.name;
-		//
-		// return {
-		// 	message: {
-		// 		...(await messagesCollection.findOne({_id: insertedId})),
-		// 		author: authorName,
-		// 	},
-		// } ?? null;
+				{contactId: new ObjectId(userId)},
+			],
+		}).toArray();
+		
+		const usersId = new Set(messages.map((message) => message.userId.toString()));
+		const contactsId = new Set(messages.map((message) => message.contactId.toString()));
+		
+		const allId = [...new Set([...usersId, ...contactsId])].filter((id) => id !== userId);
+		
+		const rooms = [];
+		
+		for (const _id of allId) {
+			rooms.push(await usersCollection.findOne({_id: new ObjectId(_id)}));
+		}
+		
+		return {
+			rooms,
+		} ?? null;
 	}
 }
 
