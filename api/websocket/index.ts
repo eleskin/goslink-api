@@ -19,7 +19,7 @@ wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
 		
 		if (!data) return;
 		
-		if (payload.data?.userId && payload.data?.contactId) {
+		if (['NEW_MESSAGE', 'DELETE_MESSAGE'].includes(payload.type)) {
 			for (const client of wss.clients) {
 				if ((client as any)._id === payload.data.userId || (client as any)._id === payload.data.contactId) {
 					client.send(JSON.stringify({
