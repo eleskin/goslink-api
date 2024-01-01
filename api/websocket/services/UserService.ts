@@ -56,9 +56,9 @@ class UserService extends WebSocketService {
 		const contactName = (await usersCollection.findOne({_id: new ObjectId(contactId)}))?.name;
 		
 		for (const message of messages) {
-			if (message.userId === userId) {
+			if (message.userId.toString() === userId) {
 				message.author = userName;
-			} else if (message.userId === contactId) {
+			} else if (message.userId.toString() === contactId) {
 				message.author = contactName;
 			}
 		}
