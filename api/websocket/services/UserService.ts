@@ -19,7 +19,7 @@ class UserService extends WebSocketService {
 		switch (this.payload?.type) {
 			case 'SEARCH_USER':
 				return await this.searchUser();
-				
+			
 			case 'GET_USER':
 				return await this.getUser();
 		}
@@ -39,12 +39,33 @@ class UserService extends WebSocketService {
 	}
 	
 	private static async getUser() {
+		const userId = this.payload?.data.userId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
 		
 		const usersCollection = await this.getCollection('users');
+		const messagesCollection = await this.getCollection('messages');
+		
+		const messages = await messagesCollection.find({
+			$or: [
+				{$and: [{contactId, userId}]},
+				{$and: [{contactId: userId, userId: contactId}]},
+			],
+		}).toArray();
+		
+		const userName = (await usersCollection.findOne({_id: new ObjectId(userId)}))?.name;
+		const contactName = (await usersCollection.findOne({_id: new ObjectId(contactId)}))?.name;
+		
+		for (const message of messages) {
+			if (message.userId === userId) {
+				message.author = userName;
+			} else if (message.userId === contactId) {
+				message.author = contactName;
+			}
+		}
 		
 		return {
 			user: await usersCollection.findOne({_id: new ObjectId(contactId)}),
+			messages,
 		} ?? null;
 	}
 }
