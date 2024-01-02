@@ -1,6 +1,7 @@
 import WebSocketService from './WebSocketService';
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
+import OnlineUsers from '../utils/onlineUsers';
 
 class RoomService extends WebSocketService {
 	private static payload: Payload | undefined;
@@ -68,6 +69,7 @@ class RoomService extends WebSocketService {
 		
 		return {
 			rooms,
+			onlineRooms: OnlineUsers.getUsers(userId)
 		} ?? null;
 	}
 }

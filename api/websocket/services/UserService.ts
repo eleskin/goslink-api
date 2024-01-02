@@ -1,9 +1,11 @@
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
 import WebSocketService from './WebSocketService';
+import OnlineUsers from '../utils/onlineUsers';
 
 class UserService extends WebSocketService {
-	private static payload: Payload | undefined;
+	private static payload: Payload;
+	private static onlineUsers: string[] = [];
 	
 	public static async setPayload(payload: Payload) {
 		this.payload = payload;
@@ -75,12 +77,16 @@ class UserService extends WebSocketService {
 	}
 	
 	private static async onlineUser() {
+		OnlineUsers.setUser(this.payload?.data.userId, this.payload?.data.contactId);
+		
 		return {
 			userId: this.payload?.data.userId ?? '',
 		} ?? null;
 	}
 	
 	private static async offlineUser() {
+		OnlineUsers.deleteUser(this.payload?.data.contactId);
+		
 		return {
 			userId: this.payload?.data.userId ?? '',
 		} ?? null;
