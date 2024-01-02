@@ -1,4 +1,3 @@
-import client from '../../../services/client';
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
 import WebSocketService from './WebSocketService';
@@ -22,6 +21,12 @@ class UserService extends WebSocketService {
 			
 			case 'GET_USER':
 				return await this.getUser();
+			
+			case 'ONLINE_USER':
+				return await this.onlineUser();
+			
+			case 'OFFLINE_USER':
+				return await this.offlineUser();
 		}
 		
 		return () => {
@@ -66,6 +71,18 @@ class UserService extends WebSocketService {
 		return {
 			user: await usersCollection.findOne({_id: new ObjectId(contactId)}),
 			messages,
+		} ?? null;
+	}
+	
+	private static async onlineUser() {
+		return {
+			userId: this.payload?.data.userId ?? '',
+		} ?? null;
+	}
+	
+	private static async offlineUser() {
+		return {
+			userId: this.payload?.data.userId ?? '',
 		} ?? null;
 	}
 }
