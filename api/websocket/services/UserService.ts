@@ -5,7 +5,6 @@ import OnlineUsers from '../utils/onlineUsers';
 
 class UserService extends WebSocketService {
 	private static payload: Payload;
-	private static onlineUsers: string[] = [];
 	
 	public static async setPayload(payload: Payload) {
 		this.payload = payload;
@@ -59,14 +58,14 @@ class UserService extends WebSocketService {
 			],
 		}).toArray();
 		
-		const userName = (await usersCollection.findOne({_id: new ObjectId(userId)}))?.name;
-		const contactName = (await usersCollection.findOne({_id: new ObjectId(contactId)}))?.name;
+		const user = await usersCollection.findOne({_id: new ObjectId(userId)});
+		const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
 		
 		for (const message of messages) {
 			if (message.userId.toString() === userId) {
-				message.author = userName;
+				message.author = user;
 			} else if (message.userId.toString() === contactId) {
-				message.author = contactName;
+				message.author = contact;
 			}
 		}
 		
