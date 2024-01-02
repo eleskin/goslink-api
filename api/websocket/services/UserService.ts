@@ -76,10 +76,12 @@ class UserService extends WebSocketService {
 	}
 	
 	private static async onlineUser() {
-		OnlineUsers.setUser(this.payload?.data.userId, this.payload?.data.contactId);
+		const userId = this.payload?.data.userId;
+		const contactId = this.payload?.data.contactId;
+		OnlineUsers.setUser(contactId, userId);
 		
 		return {
-			userId: this.payload?.data.userId ?? '',
+			userId: userId ?? '',
 		} ?? null;
 	}
 	

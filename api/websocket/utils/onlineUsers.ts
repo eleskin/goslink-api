@@ -1,8 +1,8 @@
 class OnlineUsers {
-	private static users: Map<string, string> = new Map();
+	private static users: Map<string, Set<string>> = new Map();
 	
-	public static setUser(userId: string, contactId: string) {
-		this.users.set(contactId, userId)
+	public static setUser(contactId: string, userId: string) {
+		this.users.set(contactId, new Set([...(this.users.get(contactId)?.values() || []), userId]));
 	}
 	
 	public static deleteUser(contactId: string) {
@@ -10,7 +10,7 @@ class OnlineUsers {
 	}
 	
 	public static getUsers(userId: string) {
-		return this.users.get(userId) ?? '';
+		return this.users.get(userId) ?? new Set();
 	}
 }
 
