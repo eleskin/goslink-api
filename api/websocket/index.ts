@@ -12,7 +12,7 @@ const wss = new WebSocket.Server({server});
 
 const activeClients: Map<string, WebSocket> = new Map();
 
-wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
+wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	const _id = getIdFromUrl(request);
 	
 	const existingWs = activeClients.get(_id);
@@ -46,6 +46,23 @@ wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
 	ws.on('close', () => {
 		activeClients.delete(_id);
 	});
+	
+	ws.isAlive = true;
+	ws.on('error', console.error);
+	ws.on('pong', () => ws.isAlive = true);
+});
+
+const interval = setInterval(() => {
+	wss.clients.forEach((ws: any) => {
+		if (!ws.isAlive) return ws.terminate();
+		
+		ws.isAlive = false;
+		ws.ping();
+	});
+}, 30000);
+
+wss.on('close', function close() {
+	clearInterval(interval);
 });
 
 export default app;
