@@ -36,11 +36,13 @@ class MessageService extends WebSocketService {
 			text: this.payload?.data.text,
 		});
 		const author = await usersCollection.findOne({_id: new ObjectId(this.payload?.data.userId)});
+		const contact = await usersCollection.findOne({_id: new ObjectId(this.payload?.data.contactId)});
 		
 		return {
 			message: {
 				...(await messagesCollection.findOne({_id: insertedId})),
-				author: author,
+				author,
+				contact,
 			},
 		} ?? null;
 	}
