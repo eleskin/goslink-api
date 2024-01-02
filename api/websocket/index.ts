@@ -10,8 +10,15 @@ const app = express();
 const server = http.createServer(app).listen(8000);
 const wss = new WebSocket.Server({server});
 
+const activeClients: Map<string, WebSocket> = new Map();
+
 wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
-	ws._id = getIdFromUrl(request);
+	const _id = getIdFromUrl(request);
+	
+	const existingWs = activeClients.get(_id);
+	if (!existingWs) {
+		activeClients.set(_id, ws);
+	}
 	
 	ws.on('message', async (payload: Payload) => {
 		payload = JSON.parse(payload.toString());
@@ -20,8 +27,8 @@ wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
 		if (!data) return;
 		
 		if (['NEW_MESSAGE', 'DELETE_MESSAGE'].includes(payload.type)) {
-			for (const client of wss.clients) {
-				if ((client as any)._id === payload.data.userId || (client as any)._id === payload.data.contactId) {
+			for (const [_id, client] of activeClients.entries()) {
+				if (_id === payload.data.userId || _id === payload.data.contactId) {
 					client.send(JSON.stringify({
 						type: payload.type,
 						data,
@@ -34,11 +41,11 @@ wss.on('connection', (ws: WebSocket & { _id: string }, request) => {
 				data,
 			}));
 		}
-		
-		
 	});
-});
-wss.on('close', () => {
+	
+	ws.on('close', () => {
+		activeClients.delete(_id);
+	});
 });
 
 export default app;
