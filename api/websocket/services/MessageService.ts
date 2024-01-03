@@ -18,6 +18,8 @@ class MessageService extends WebSocketService {
 		switch (this.payload?.type) {
 			case 'NEW_MESSAGE':
 				return await this.newMessage();
+			case 'EDIT_MESSAGE':
+				return await this.editMessage();
 			case 'DELETE_MESSAGE':
 				return await this.deleteMessage();
 		}
@@ -48,13 +50,28 @@ class MessageService extends WebSocketService {
 		} ?? null;
 	}
 	
+	private static async editMessage() {
+		const messagesCollection = await this.getCollection('messages');
+		
+		await messagesCollection.replaceOne(
+			{_id: new ObjectId(this.payload?.data._id)},
+			{text: this.payload?.data.text},
+		);
+		
+		const text = (await messagesCollection.findOne({_id: new ObjectId(this.payload?.data._id)}))?.text ?? '';
+		
+		return {
+			text,
+		};
+	}
+	
 	private static async deleteMessage() {
 		const _id = this.payload?.data._id ?? '';
 		const userId = this.payload?.data.userId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
 		
 		const roomIds = [userId, contactId];
-		roomIds.sort()
+		roomIds.sort();
 		const roomKey = `${roomIds[0]}_${roomIds[1]}`;
 		
 		const messagesCollection = await this.getCollection('messages');

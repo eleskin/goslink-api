@@ -26,7 +26,7 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 		
 		if (!data) return;
 		
-		if (['NEW_MESSAGE', 'DELETE_MESSAGE', 'ONLINE_USER', 'OFFLINE_USER'].includes(payload.type)) {
+		if (['NEW_MESSAGE', 'DELETE_MESSAGE', 'EDIT_MESSAGE', 'ONLINE_USER', 'OFFLINE_USER'].includes(payload.type)) {
 			for (const [_id, client] of activeClients.entries()) {
 				if (_id === payload.data.userId || _id === payload.data.contactId) {
 					client.send(JSON.stringify({
