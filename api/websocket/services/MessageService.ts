@@ -53,15 +53,15 @@ class MessageService extends WebSocketService {
 	private static async editMessage() {
 		const messagesCollection = await this.getCollection('messages');
 		
-		await messagesCollection.replaceOne(
+		await messagesCollection.updateOne(
 			{_id: new ObjectId(this.payload?.data._id)},
-			{text: this.payload?.data.text},
+			{$set: {text: this.payload?.data.text}},
 		);
 		
-		const text = (await messagesCollection.findOne({_id: new ObjectId(this.payload?.data._id)}))?.text ?? '';
+		const message = await messagesCollection.findOne({_id: new ObjectId(this.payload?.data._id)});
 		
 		return {
-			text,
+			message,
 		};
 	}
 	
