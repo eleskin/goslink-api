@@ -7,8 +7,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 import apiUserAuthRouter from './legacy_api/user/auth';
-import apiUserSearchRouter from './legacy_api/user/search';
-import apiChatRouter from './legacy_api/chat';
 import apiWebSocketRouter from './api/websocket';
 
 dotenv.config();
@@ -27,8 +25,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/user/auth', apiUserAuthRouter);
-app.use('/api/user/search', apiUserSearchRouter);
-app.use('/api/chat', apiChatRouter);
 
 app.use('/api/websocket', apiWebSocketRouter);
 
