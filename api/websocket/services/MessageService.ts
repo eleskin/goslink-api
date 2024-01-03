@@ -76,7 +76,8 @@ class MessageService extends WebSocketService {
 		return {
 			removedMessageId: _id,
 			lastMessage: sortedMessages[roomKey],
-			roomId: userId,
+			userId,
+			contactId,
 		};
 	}
 }
