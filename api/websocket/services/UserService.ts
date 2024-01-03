@@ -56,7 +56,7 @@ class UserService extends WebSocketService {
 				{$and: [{contactId: new ObjectId(contactId), userId: new ObjectId(userId)}]},
 				{$and: [{contactId: new ObjectId(userId), userId: new ObjectId(contactId)}]},
 			],
-		}).toArray();
+		}).sort({'dateObject': 1}).toArray();
 		
 		const user = await usersCollection.findOne({_id: new ObjectId(userId)});
 		const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
