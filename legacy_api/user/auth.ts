@@ -80,8 +80,8 @@ router.post('/', (req, res) => {
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
 	
-	bcrypt.hash(password, process.env.SALT_ROUNDS ?? '', async (err, hash) => {
-		const usersCollection = await client.db('main').collection('users');
+	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
+		const usersCollection = client.db('main').collection('users');
 		const users = await usersCollection.find({email}).toArray();
 		
 		const isExistUser = Boolean(users.length);
