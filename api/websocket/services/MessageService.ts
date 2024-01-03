@@ -37,6 +37,7 @@ class MessageService extends WebSocketService {
 			contactId: new ObjectId(this.payload?.data.contactId),
 			text: this.payload?.data.text,
 			dateObject: new Date().toUTCString(),
+			checked: false,
 		});
 		const author = await usersCollection.findOne({_id: new ObjectId(this.payload?.data.userId)});
 		const contact = await usersCollection.findOne({_id: new ObjectId(this.payload?.data.contactId)});
