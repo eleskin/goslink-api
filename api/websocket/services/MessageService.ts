@@ -123,6 +123,8 @@ class MessageService extends WebSocketService {
 			contactId: new ObjectId(contactId),
 			userId: new ObjectId(userId),
 		}, {$set: {checked: true}});
+		
+		return {};
 	}
 }
 
