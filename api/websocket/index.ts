@@ -12,6 +12,16 @@ const wss = new WebSocket.Server({server});
 
 const activeClients: Map<string, WebSocket> = new Map();
 
+const groupResponses = [
+	'NEW_MESSAGE',
+	'DELETE_MESSAGE',
+	'EDIT_MESSAGE',
+	'ONLINE_USER',
+	'OFFLINE_USER',
+	'READ_MESSAGE',
+	'READ_ALL_MESSAGE'
+];
+
 wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	const _id = getIdFromUrl(request);
 	
@@ -26,7 +36,7 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 		
 		if (!data) return;
 		
-		if (['NEW_MESSAGE', 'DELETE_MESSAGE', 'EDIT_MESSAGE', 'ONLINE_USER', 'OFFLINE_USER', 'READ_MESSAGE'].includes(payload.type)) {
+		if (groupResponses.includes(payload.type)) {
 			for (const [_id, client] of activeClients.entries()) {
 				if (_id === payload.data.userId || _id === payload.data.contactId) {
 					client.send(JSON.stringify({

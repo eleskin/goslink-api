@@ -24,6 +24,8 @@ class MessageService extends WebSocketService {
 				return await this.deleteMessage();
 			case 'READ_MESSAGE':
 				return await this.readMessage();
+			case 'READ_ALL_MESSAGE':
+				return await this.readAllMessage();
 		}
 		
 		return () => {
@@ -109,6 +111,18 @@ class MessageService extends WebSocketService {
 		await messagesCollection.updateOne({_id: new ObjectId(_id)}, {$set: {checked: true}});
 		
 		return {_id};
+	}
+	
+	private static async readAllMessage() {
+		const userId = this.payload?.data.userId ?? '';
+		const contactId = this.payload?.data.contactId ?? '';
+		
+		const messagesCollection = await this.getCollection('messages');
+		
+		await messagesCollection.updateMany({
+			contactId: new ObjectId(contactId),
+			userId: new ObjectId(userId),
+		}, {$set: {checked: true}});
 	}
 }
 
