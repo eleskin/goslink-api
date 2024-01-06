@@ -20,57 +20,31 @@ router.post('/', (req, res) => {
 			return res.status(401).send();
 		}
 		
-		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET ?? '', async (err: any, user: any) => {
+		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET ?? '', async (err: any, tokenUser: any) => {
 			if (err) {
 				return res.status(403).send();
 			}
 			
-			const roomsCollection = client.db('main').collection('rooms');
 			const usersCollection = client.db('main').collection('users');
-			const messagesCollection = client.db('main').collection('messages');
-			const users = await usersCollection.find({email: user.email}).toArray();
+			const user = await usersCollection.findOne({email: tokenUser.email});
 			
-			// const messagesCollection = await client.db('main').collection('messages');
-			// const dialogsUsernames = (await messagesCollection
-			// 		.find({$or: [{username: users?.[0]?.username}, {conversationalist: users?.[0]?.username}]})
-			// 		.toArray())
-			// 		.map((dialog) => [dialog.username, dialog.conversationalist]);
-			
-			// const usernames = [...new Set(dialogsUsernames.flat())].filter((username) => username !== users?.[0]?.username);
-			
-			// const dialogs = await usersCollection
-			// 	.find({username: {$in: usernames}}, {projection: {name: 1, username: 1, _id: 0}})
-			// 	.toArray();
-			const rooms = await roomsCollection.find({
-				$or: [{firstUserId: users?.[0]?._id}, {secondUserId: users?.[0]?._id}],
-			}).toArray();
-			
-			if (users?.[0]?.refreshToken !== refreshToken.split(' ')[1]) {
+			if (user?.refreshToken !== refreshToken.split(' ')[1]) {
 				return res.status(403).send();
 			}
 			
 			const accessToken = jwt.sign(
-				{email: user.email},
+				{email: tokenUser.email},
 				process.env.ACCESS_TOKEN_SECRET ?? '',
 				{expiresIn: '1h'},
 			);
 			
-			for (const room of rooms) {
-				const conversationalistId = room.firstUserId.toString() === users?.[0]?._id.toString() ? room.secondUserId : room.firstUserId;
-				room.conversationalist = conversationalistId;
-				room.conversationalistName = (await usersCollection.findOne({_id: conversationalistId}))?.name;
-				const messages = messagesCollection.find({roomId: room._id}).sort({_id: -1}).limit(1);
-				room.lastMessage = (await messages.toArray())[0]?.text;
-			}
-			
 			return res.status(200).send({
 				accessToken,
-				rooms,
 				user: {
-					_id: users?.[0]?._id,
-					name: users?.[0]?.name,
-					username: users?.[0]?.username,
-					email: users?.[0]?.email,
+					_id: user?._id,
+					name: user?.name,
+					username: user?.username,
+					email: user?.email,
 				},
 			});
 		});
