@@ -120,8 +120,10 @@ class MessageService extends WebSocketService {
 		const messagesCollection = await this.getCollection('messages');
 		
 		await messagesCollection.updateMany({
-			contactId: new ObjectId(contactId),
-			userId: new ObjectId(userId),
+			$and: [
+				{contactId: new ObjectId(contactId)},
+				{userId: new ObjectId(userId)},
+			],
 		}, {$set: {checked: true}});
 		
 		return {};
