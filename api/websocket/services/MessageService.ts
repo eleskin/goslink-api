@@ -151,10 +151,9 @@ class MessageService extends WebSocketService {
 		const users = [];
 		
 		for (const message of searchedMessages) {
-			const _id = message.userId === userId ? message.contactId : message.userId;
+			const _id = message.userId.toString() === userId ? message.contactId : message.userId;
 			
 			const user = await usersCollection.findOne({_id: new ObjectId(_id)});
-			console.log(user);
 			
 			if (user) {
 				user.lastMessage = message;
