@@ -26,6 +26,8 @@ class MessageService extends WebSocketService {
 				return await this.readMessage();
 			case 'READ_ALL_MESSAGE':
 				return await this.readAllMessage();
+			case 'SEARCH_MESSAGE':
+				return await this.searchMessage();
 		}
 		
 		return () => {
@@ -130,6 +132,24 @@ class MessageService extends WebSocketService {
 			contactId,
 			userId,
 		};
+	}
+	
+	private static async searchMessage() {
+		const userId = this.payload?.data.userId ?? '';
+		const searchValue = this.payload?.data.searchValue ?? '';
+		
+		const messagesCollection = await this.getCollection('messages');
+		
+		const searchedMessages = await messagesCollection.find({
+			$and: [
+				{userId: new ObjectId(userId)},
+				{text: {$regex : searchValue}},
+			]
+		}).toArray();
+		
+		return {
+			searchedMessages,
+		}
 	}
 }
 
