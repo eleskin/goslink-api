@@ -142,7 +142,7 @@ class MessageService extends WebSocketService {
 		
 		const searchedMessages = await messagesCollection.find({
 			$and: [
-				{userId: new ObjectId(userId)},
+				{$or: [{userId: new ObjectId(userId)}, {contactId: new ObjectId(userId)}]},
 				{text: {$regex : searchValue}},
 			]
 		}).toArray();
