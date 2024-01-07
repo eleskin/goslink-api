@@ -136,7 +136,6 @@ class MessageService extends WebSocketService {
 	
 	private static async searchMessage() {
 		const userId = this.payload?.data.userId ?? '';
-		const contactId = this.payload?.data.contactId ?? '';
 		const searchValue = this.payload?.data.searchValue ?? '';
 		
 		const usersCollection = await this.getCollection('users');
@@ -152,9 +151,10 @@ class MessageService extends WebSocketService {
 		const users = [];
 		
 		for (const message of searchedMessages) {
-			const _id = message.userId === userId ? contactId : userId;
+			const _id = message.userId === userId ? message.contactId : message.userId;
 			
 			const user = await usersCollection.findOne({_id: new ObjectId(_id)});
+			console.log(user);
 			
 			if (user) {
 				user.lastMessage = message;
