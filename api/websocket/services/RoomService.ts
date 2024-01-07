@@ -61,16 +61,15 @@ class RoomService extends WebSocketService {
 				const key1 = `${userId}_${_id}`;
 				const key2 = `${_id}_${userId}`;
 				
-				const lastMessage = (sortedMessages[key1] || sortedMessages[key2] || null)?.text ?? '';
-				const lastMessageDate = (sortedMessages[key1] || sortedMessages[key2] || null)?.dateObject ?? '';
+				const lastMessage = sortedMessages[key1] || sortedMessages[key2] || null;
 				
-				rooms.push({...room, lastMessage, lastMessageDate});
+				rooms.push({...room, lastMessage});
 			}
 		}
 		
 		rooms.sort((room1, room2) => {
-			const date1 = new Date(room1.lastMessageDate);
-			const date2 = new Date(room2.lastMessageDate);
+			const date1 = new Date(room1.lastMessage.dateObject);
+			const date2 = new Date(room2.lastMessage.dateObject);
 			
 			if (date1 > date2) return -1;
 			if (date1 < date2) return 1;
