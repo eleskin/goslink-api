@@ -126,7 +126,10 @@ class MessageService extends WebSocketService {
 			],
 		}, {$set: {checked: true}});
 		
-		return {};
+		return {
+			contactId,
+			userId,
+		};
 	}
 }
 
