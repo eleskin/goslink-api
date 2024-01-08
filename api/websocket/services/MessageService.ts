@@ -116,6 +116,7 @@ class MessageService extends WebSocketService {
 	}
 	
 	private static async readAllMessage() {
+		const _id = this.payload?.data._id ?? '';
 		const userId = this.payload?.data.userId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
 		
@@ -127,8 +128,10 @@ class MessageService extends WebSocketService {
 				{userId: new ObjectId(userId)},
 			],
 		}, {$set: {checked: true}});
+		await messagesCollection.updateOne({_id: new ObjectId(_id)}, {$set: {checked: true}});
 		
 		return {
+			_id,
 			contactId,
 			userId,
 		};
