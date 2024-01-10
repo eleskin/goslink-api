@@ -16,6 +16,8 @@ class ChatService extends WebSocketService {
 		};
 		
 		switch (this.payload?.type) {
+			case 'GET_CHAT':
+				return await this.getChat();
 			case 'NEW_CHAT':
 				return await this.newChat();
 		}
@@ -37,14 +39,14 @@ class ChatService extends WebSocketService {
 			const contactChats = await usersInChats.find({userId: new ObjectId(contactId)}).toArray();
 			
 			const intersection = userChats.filter((item1) =>
-				contactChats.some((item2) => item1.chatId.toString() === item2.chatId.toString())
+				contactChats.some((item2) => item1.chatId.toString() === item2.chatId.toString()),
 			);
 			
 			const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
 			
-			if (intersection?.[0]?._id) {
+			if (intersection?.[0]?.chatId) {
 				return {
-					chatId: intersection[0]._id,
+					chatId: intersection[0].chatId,
 					contact,
 				};
 			} else {
@@ -59,12 +61,23 @@ class ChatService extends WebSocketService {
 				};
 			}
 		} else {
-		
 		}
+	}
+	
+	private static async getChat() {
+		const chatId = this.payload?.data.chatId ?? '';
 		
-		// return {
-		// 	chatId: insertedId,
-		// };
+		const usersCollection = await this.getCollection('users');
+		const usersInChats = await this.getCollection('users_in_chats');
+		
+		const usersId = (await usersInChats.find({chatId: new ObjectId(chatId)}).toArray())
+			.map((chat) => new ObjectId(chat.userId));
+		
+		const users = await usersCollection.find({_id: {$in: usersId}}).toArray();
+		
+		return {
+			users,
+		};
 	}
 }
 
