@@ -2,9 +2,10 @@ import UserService from '../services/UserService';
 import {Payload} from '../types';
 import MessageService from '../services/MessageService';
 import RoomService from '../services/RoomService';
+import ChatService from '../services/ChatService';
 
 const handleMessageWebSocket = async (payload: Payload) => {
-	const {type, data} = payload;
+	const {type} = payload;
 	const service = type.split('_').at(-1);
 	
 	switch (service) {
@@ -16,6 +17,9 @@ const handleMessageWebSocket = async (payload: Payload) => {
 		
 		case 'ROOM':
 			return await RoomService.setPayload(payload)
+		
+		case 'CHAT':
+			return await ChatService.setPayload(payload)
 	}
 	
 	return null;
