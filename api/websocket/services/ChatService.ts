@@ -30,6 +30,7 @@ class ChatService extends WebSocketService {
 		
 		const chatsCollection = await this.getCollection('chats');
 		const usersInChats = await this.getCollection('users_in_chats');
+		const usersCollection = await this.getCollection('users');
 		
 		if (contactId) {
 			const userChats = await usersInChats.find({userId: new ObjectId(userId)}).toArray();
@@ -39,20 +40,24 @@ class ChatService extends WebSocketService {
 				contactChats.some((item2) => item1.chatId.toString() === item2.chatId.toString())
 			);
 			
+			const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
+			
 			if (intersection?.[0]?._id) {
 				return {
 					chatId: intersection[0]._id,
+					contact,
+				};
+			} else {
+				const {insertedId} = await chatsCollection.insertOne({});
+				
+				await usersInChats.insertOne({userId: new ObjectId(userId), chatId: insertedId});
+				await usersInChats.insertOne({userId: new ObjectId(contactId), chatId: insertedId});
+				
+				return {
+					chatId: insertedId,
+					contact,
 				};
 			}
-			
-			const {insertedId} = await chatsCollection.insertOne({});
-			
-			await usersInChats.insertOne({userId: new ObjectId(userId), chatId: insertedId});
-			await usersInChats.insertOne({userId: new ObjectId(contactId), chatId: insertedId});
-			
-			return {
-				chatId: insertedId,
-			};
 		} else {
 		
 		}
