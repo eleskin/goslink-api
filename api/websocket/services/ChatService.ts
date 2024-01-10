@@ -1,5 +1,6 @@
 import WebSocketService from './WebSocketService';
 import {Payload} from '../types';
+import {ObjectId} from 'mongodb';
 
 class ChatService extends WebSocketService {
 	private static payload: Payload | undefined;
@@ -25,17 +26,40 @@ class ChatService extends WebSocketService {
 	
 	private static async newChat() {
 		const userId = this.payload?.data.userId ?? '';
+		const contactId = this.payload?.data.contactId ?? '';
 		
 		const chatsCollection = await this.getCollection('chats');
 		const usersInChats = await this.getCollection('users_in_chats');
 		
-		const {insertedId} = await chatsCollection.insertOne({});
+		if (contactId) {
+			const userChats = await usersInChats.find({userId: new ObjectId(userId)}).toArray();
+			const contactChats = await usersInChats.find({userId: new ObjectId(contactId)}).toArray();
+			
+			const intersection = userChats.filter((item1) =>
+				contactChats.some((item2) => item1.chatId.toString() === item2.chatId.toString())
+			);
+			
+			if (intersection?.[0]?._id) {
+				return {
+					chatId: intersection[0]._id,
+				};
+			}
+			
+			const {insertedId} = await chatsCollection.insertOne({});
+			
+			await usersInChats.insertOne({userId: new ObjectId(userId), chatId: insertedId});
+			await usersInChats.insertOne({userId: new ObjectId(contactId), chatId: insertedId});
+			
+			return {
+				chatId: insertedId,
+			};
+		} else {
 		
-		await usersInChats.insertOne({userId: userId, chatId: insertedId});
+		}
 		
-		return {
-			chatId: insertedId,
-		};
+		// return {
+		// 	chatId: insertedId,
+		// };
 	}
 }
 
