@@ -2,6 +2,7 @@ import WebSocketService from './WebSocketService';
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
 import OnlineUsers from '../utils/onlineUsers';
+import UserService from './UserService';
 
 class RoomService extends WebSocketService {
 	private static payload: Payload | undefined;
@@ -29,56 +30,54 @@ class RoomService extends WebSocketService {
 		const userId = this.payload?.data.userId;
 		
 		const messagesCollection = await this.getCollection('messages');
-		const usersCollection = await this.getCollection('users');
+		const usersInChatsCollection = await UserService.getCollection('users_in_chats');
 		
+		const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
+			.map((item) => item.chatId))];
 		const messages = await messagesCollection.find({
-			$or: [
-				{userId: new ObjectId(userId)},
-				{contactId: new ObjectId(userId)},
-			],
+			chatId: {$in: chatsId}
 		}).toArray();
 		
 		const sortedMessages = messages.reduce((acc: any, message) => {
-			const ids = [message.userId, message.contactId].sort();
-			const key = `${ids[0]}_${ids[1]}`;
-			
-			acc[key] = message;
-			
+			acc[message.chatId.toString()] = message;
+
 			return acc;
 		}, {});
+
+		// const usersId = new Set(messages.map((message) => message.userId.toString()));
+		// const contactsId = new Set(messages.map((message) => message.contactId.toString()));
+		//
+		// const allId = [...new Set([...usersId, ...contactsId])].filter((id) => id !== userId);
+		//
+		// const rooms = [];
+		//
+		// for (const _id of allId) {
+		// 	const room = await usersCollection.findOne({_id: new ObjectId(_id)});
+		//
+		// 	if (room) {
+		// 		const key1 = `${userId}_${_id}`;
+		// 		const key2 = `${_id}_${userId}`;
+		//
+		// 		const lastMessage = sortedMessages[key1] || sortedMessages[key2] || null;
+		//
+		// 		rooms.push({...room, lastMessage});
+		// 	}
+		// }
 		
-		const usersId = new Set(messages.map((message) => message.userId.toString()));
-		const contactsId = new Set(messages.map((message) => message.contactId.toString()));
+		const rooms = Object.values(sortedMessages);
 		
-		const allId = [...new Set([...usersId, ...contactsId])].filter((id) => id !== userId);
-		
-		const rooms = [];
-		
-		for (const _id of allId) {
-			const room = await usersCollection.findOne({_id: new ObjectId(_id)});
-			
-			if (room) {
-				const key1 = `${userId}_${_id}`;
-				const key2 = `${_id}_${userId}`;
-				
-				const lastMessage = sortedMessages[key1] || sortedMessages[key2] || null;
-				
-				rooms.push({...room, lastMessage});
-			}
-		}
-		
-		rooms.sort((room1, room2) => {
-			const date1 = new Date(room1.lastMessage.dateObject);
-			const date2 = new Date(room2.lastMessage.dateObject);
-			
+		rooms.sort((room1: any, room2: any) => {
+			const date1 = new Date(room1.dateObject);
+			const date2 = new Date(room2.dateObject);
+
 			if (date1 > date2) return -1;
 			if (date1 < date2) return 1;
 			return 0;
 		});
-		
+
 		return {
 			rooms,
-			onlineRooms: Array.from(OnlineUsers.getUsers(userId))
+			// onlineRooms: Array.from(OnlineUsers.getUsers(userId))
 		} ?? null;
 	}
 }
