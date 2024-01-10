@@ -31,6 +31,7 @@ class RoomService extends WebSocketService {
 		
 		const messagesCollection = await this.getCollection('messages');
 		const usersInChatsCollection = await UserService.getCollection('users_in_chats');
+		const usersCollection = await UserService.getCollection('users');
 		
 		const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
 			.map((item) => item.chatId))];
@@ -38,11 +39,20 @@ class RoomService extends WebSocketService {
 			chatId: {$in: chatsId}
 		}).toArray();
 		
-		const sortedMessages = messages.reduce((acc: any, message) => {
+		const sortedMessages: any[] = Object.values(messages.reduce((acc: any, message) => {
 			acc[message.chatId.toString()] = message;
 
 			return acc;
-		}, {});
+		}, {}));
+		
+		sortedMessages.sort((room1: any, room2: any) => {
+			const date1 = new Date(room1.dateObject);
+			const date2 = new Date(room2.dateObject);
+			
+			if (date1 > date2) return -1;
+			if (date1 < date2) return 1;
+			return 0;
+		});
 
 		// const usersId = new Set(messages.map((message) => message.userId.toString()));
 		// const contactsId = new Set(messages.map((message) => message.contactId.toString()));
@@ -63,17 +73,21 @@ class RoomService extends WebSocketService {
 		// 		rooms.push({...room, lastMessage});
 		// 	}
 		// }
+		const rooms: any[] = [];
 		
-		const rooms = Object.values(sortedMessages);
-		
-		rooms.sort((room1: any, room2: any) => {
-			const date1 = new Date(room1.dateObject);
-			const date2 = new Date(room2.dateObject);
-
-			if (date1 > date2) return -1;
-			if (date1 < date2) return 1;
-			return 0;
-		});
+		for (const message of sortedMessages) {
+			const room: any = {
+				_id: '',
+				name: '',
+				lastMessage: {}
+			};
+			
+			room._id = message.chatId;
+			room.name = (await usersCollection.findOne({_id: new ObjectId(message.userId)}))?.name;
+			room.lastMessage = message;
+			
+			rooms.push(room);
+		}
 
 		return {
 			rooms,
