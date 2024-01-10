@@ -4,6 +4,8 @@ import WebSocket from 'ws';
 import handleMessageWebSocket from './handlers/handleMessageWebSocket';
 import {Payload} from './types';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
+import UserService from './services/UserService';
+import {ObjectId} from 'mongodb';
 
 const app = express();
 
@@ -36,9 +38,14 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 		
 		if (!data) return;
 		
+		const usersInChatsCollection = await UserService.getCollection('users_in_chats');
+		const usersInChats = [...new Set((await usersInChatsCollection
+			.find({chatId: new ObjectId(payload.data.chatId)})
+			.toArray()).map((item) => item.userId.toString()))];
+		
 		if (groupResponses.includes(payload.type)) {
 			for (const [_id, client] of activeClients.entries()) {
-				if (_id === payload.data.userId || _id === payload.data.contactId) {
+				if (usersInChats.includes(_id)) {
 					client.send(JSON.stringify({
 						type: payload.type,
 						data,
