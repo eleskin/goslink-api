@@ -75,10 +75,12 @@ class MessageService extends WebSocketService {
 		
 		const messagesCollection = await this.getCollection('messages');
 		
+		const deletedMessage = await messagesCollection.findOne({_id: new ObjectId(_id)});
+		
 		await messagesCollection.deleteOne({_id: new ObjectId(_id)});
 		
 		return {
-			removedMessageId: _id,
+			deletedMessage,
 		};
 	}
 	
