@@ -38,30 +38,26 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 		
 		if (!data) return;
 		
+		if (payload.data.chatId && groupResponses.includes(payload.type)) {
+			const chatsCollection = await UserService.getCollection('chats');
+			const users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
+				.map((user: ObjectId) => user.toString());
+			
+			
+			for (const [_id, client] of activeClients.entries()) {
+				if (users.includes(_id)) {
+					client.send(JSON.stringify({
+						type: payload.type,
+						data,
+					}));
+				}
+			}
+		}
+		
 		ws.send(JSON.stringify({
 			type: payload.type,
 			data,
 		}));
-		// 	const usersInChatsCollection = await UserService.getCollection('users_in_chats');
-		// 	const usersInChats = [...new Set((await usersInChatsCollection
-		// 		.find({chatId: new ObjectId(payload.data.chatId)})
-		// 		.toArray()).map((item) => item.userId.toString()))];
-		//
-		// 	if (groupResponses.includes(payload.type)) {
-		// 		for (const [_id, client] of activeClients.entries()) {
-		// 			if (usersInChats.includes(_id)) {
-		// 				client.send(JSON.stringify({
-		// 					type: payload.type,
-		// 					data,
-		// 				}));
-		// 			}
-		// 		}
-		// 	} else {
-		// 		ws.send(JSON.stringify({
-		// 			type: payload.type,
-		// 			data,
-		// 		}));
-		// 	}
 	});
 	
 	ws.on('close', () => {
