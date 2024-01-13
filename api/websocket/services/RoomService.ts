@@ -49,11 +49,35 @@ class RoomService extends WebSocketService {
 				.map((user) => user.name)
 				.join(', ');
 			
+			const messages = await messagesCollection.find({
+				chatId: chat._id,
+			}).toArray();
+			
+			const sortedMessages: any[] = Object.values(messages.reduce((acc: any, message) => {
+				acc[message.chatId.toString()] = message;
+				
+				return acc;
+			}, {}));
+			
+			sortedMessages.sort((room1: any, room2: any) => {
+				const date1 = new Date(room1.dateObject);
+				const date2 = new Date(room2.dateObject);
+
+				if (date1 > date2) return -1;
+				if (date1 < date2) return 1;
+				return 0;
+			});
+			
 			rooms.push({
 				_id: chat._id,
 				name,
+				lastMessage: sortedMessages[0],
 			});
 		}
+		
+		
+		
+		
 		
 		console.log(rooms);
 		// const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
@@ -62,20 +86,9 @@ class RoomService extends WebSocketService {
 		// 	chatId: {$in: chatsId},
 		// }).toArray();
 		//
-		// const sortedMessages: any[] = Object.values(messages.reduce((acc: any, message) => {
-		// 	acc[message.chatId.toString()] = message;
+		
 		//
-		// 	return acc;
-		// }, {}));
-		//
-		// sortedMessages.sort((room1: any, room2: any) => {
-		// 	const date1 = new Date(room1.dateObject);
-		// 	const date2 = new Date(room2.dateObject);
-		//
-		// 	if (date1 > date2) return -1;
-		// 	if (date1 < date2) return 1;
-		// 	return 0;
-		// });
+		
 		
 		// const usersId = new Set(messages.map((message) => message.userId.toString()));
 		// const contactsId = new Set(messages.map((message) => message.contactId.toString()));
