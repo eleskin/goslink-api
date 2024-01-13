@@ -44,8 +44,8 @@ class MessageService extends WebSocketService {
 			dateObject: new Date().toUTCString(),
 			checked: false,
 			text,
-			chatId,
-			userId,
+			chatId: new ObjectId(chatId),
+			userId: new ObjectId(userId),
 		});
 		const author = await usersCollection.findOne({_id: new ObjectId(userId)});
 		const message = await messagesCollection.findOne({_id: insertedId})
