@@ -59,15 +59,6 @@ class RoomService extends WebSocketService {
 				return acc;
 			}, {}));
 			
-			sortedMessages.sort((room1: any, room2: any) => {
-				const date1 = new Date(room1.dateObject);
-				const date2 = new Date(room2.dateObject);
-
-				if (date1 > date2) return -1;
-				if (date1 < date2) return 1;
-				return 0;
-			});
-			
 			rooms.push({
 				_id: chat._id,
 				name,
@@ -75,11 +66,6 @@ class RoomService extends WebSocketService {
 			});
 		}
 		
-		
-		
-		
-		
-		console.log(rooms);
 		// const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
 		// 	.map((item) => item.chatId))];
 		// const messages = await messagesCollection.find({
@@ -131,6 +117,16 @@ class RoomService extends WebSocketService {
 		// 	rooms.push(room);
 		// }
 		//
+		
+		rooms.sort((room1: any, room2: any) => {
+			const date1 = new Date(room1.lastMessage.dateObject);
+			const date2 = new Date(room2.lastMessage.dateObject);
+
+			if (date1 > date2) return -1;
+			if (date1 < date2) return 1;
+			return 0;
+		});
+		
 		return {
 			rooms,
 			// 	// onlineRooms: Array.from(OnlineUsers.getUsers(userId))
