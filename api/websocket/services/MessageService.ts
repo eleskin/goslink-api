@@ -47,8 +47,8 @@ class MessageService extends WebSocketService {
 			userId: new ObjectId(userId),
 			text,
 		});
-		const author = await usersCollection.findOne({_id: new ObjectId(userId)});
-		const message = await messagesCollection.findOne({_id: insertedId})
+		const message: any = await messagesCollection.findOne({_id: insertedId});
+		message.author = await usersCollection.findOne({_id: new ObjectId(userId)})
 
 		// const userRooms = (await usersInChatsCollection.find({chatId: message?.chatId}).toArray())
 		// 	.filter((item) => item.userId.toString() !== userId)
@@ -65,10 +65,7 @@ class MessageService extends WebSocketService {
 		// }
 		//
 		return {
-			message: {
-				...message,
-				author,
-			},
+			message,
 		// 	userChatName: await getChatName(true),
 		// 	contactChatName: await getChatName(false),
 		} ?? null;
