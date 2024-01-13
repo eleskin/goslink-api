@@ -31,7 +31,6 @@ class ChatService extends WebSocketService {
 		const contactId = this.payload?.data.contactId ?? '';
 
 		const chatsCollection = await this.getCollection('chats');
-		const usersCollection = await this.getCollection('users');
 
 		if (contactId) {
 			let chat = await chatsCollection.findOne({
@@ -52,32 +51,9 @@ class ChatService extends WebSocketService {
 				chat = await chatsCollection.findOne({_id: insertedId});
 			}
 			
-			console.log(chat)
-		// 	const userChats = await usersInChats.find({userId: new ObjectId(userId)}).toArray();
-		// 	const contactChats = await usersInChats.find({userId: new ObjectId(contactId)}).toArray();
-		//
-		// 	const intersection = userChats.filter((item1) =>
-		// 		contactChats.some((item2) => item1.chatId.toString() === item2.chatId.toString()),
-		// 	);
-		//
-		// 	const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
-		//
-		// 	if (intersection?.[0]?.chatId) {
-		// 		return {
-		// 			chatId: intersection[0].chatId,
-		// 			contact,
-		// 		};
-		// 	} else {
-		// 		const {insertedId} = await chatsCollection.insertOne({});
-		//
-		// 		await usersInChats.insertOne({userId: new ObjectId(userId), chatId: insertedId});
-		// 		await usersInChats.insertOne({userId: new ObjectId(contactId), chatId: insertedId});
-		//
-		// 		return {
-		// 			chatId: insertedId,
-		// 			contact,
-		// 		};
-		// 	}
+			return {
+				chat,
+			}
 		} else {
 		}
 	}
