@@ -29,10 +29,13 @@ class ChatService extends WebSocketService {
 	private static async newChat() {
 		const userId = this.payload?.data.userId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
-
+		
 		const chatsCollection = await this.getCollection('chats');
-
+		const usersCollection = await this.getCollection('users');
+		
 		if (contactId) {
+			const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
+			
 			let chat = await chatsCollection.findOne({
 				users: {
 					$all: [
@@ -40,12 +43,12 @@ class ChatService extends WebSocketService {
 						new ObjectId(contactId),
 					],
 					$size: 2,
-				}
+				},
 			});
 			
 			if (!chat) {
 				const {insertedId} = await chatsCollection.insertOne({
-					users: [new ObjectId(userId), new ObjectId(contactId)]
+					users: [new ObjectId(userId), new ObjectId(contactId)],
 				});
 				
 				chat = await chatsCollection.findOne({_id: insertedId});
@@ -53,7 +56,8 @@ class ChatService extends WebSocketService {
 			
 			return {
 				chat,
-			}
+				contact,
+			};
 		} else {
 		}
 	}
