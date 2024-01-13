@@ -35,43 +35,42 @@ class MessageService extends WebSocketService {
 	}
 	
 	private static async newMessage() {
-		const userId = this.payload?.data.userId;
+		const {userId, chatId, text} = this.payload?.data as any;
 		
 		const messagesCollection = await this.getCollection('messages');
 		const usersCollection = await this.getCollection('users');
-		const usersInChatsCollection = await this.getCollection('users_in_chats')
 		
 		const {insertedId} = await messagesCollection.insertOne({
-			userId: new ObjectId(userId),
-			chatId: new ObjectId(this.payload?.data.chatId),
-			text: this.payload?.data.text,
 			dateObject: new Date().toUTCString(),
 			checked: false,
+			text,
+			chatId,
+			userId,
 		});
-		const author = await usersCollection.findOne({_id: new ObjectId(this.payload?.data.userId)});
+		const author = await messagesCollection.findOne({_id: new ObjectId(userId)});
 		const message = await messagesCollection.findOne({_id: insertedId})
-		
-		const userRooms = (await usersInChatsCollection.find({chatId: message?.chatId}).toArray())
-			.filter((item) => item.userId.toString() !== userId)
-			.map((item) => item.userId);
-		const users = await usersCollection.find({_id: {$in: userRooms}}).toArray();
-		const chatName = users.map((user) => user.name).join(', ');
-		
-		const getChatName = async (user: boolean) => {
-			const userRooms = (await usersInChatsCollection.find({chatId: message?.chatId}).toArray())
-				.filter((item) => (user ? item.userId.toString() !== userId : item.userId.toString() === userId))
-				.map((item) => item.userId);
-			const users = await usersCollection.find({_id: {$in: userRooms}}).toArray();
-			return users.map((user) => user.name).join(', ');
-		}
 
+		// const userRooms = (await usersInChatsCollection.find({chatId: message?.chatId}).toArray())
+		// 	.filter((item) => item.userId.toString() !== userId)
+		// 	.map((item) => item.userId);
+		// const users = await usersCollection.find({_id: {$in: userRooms}}).toArray();
+		// const chatName = users.map((user) => user.name).join(', ');
+		//
+		// const getChatName = async (user: boolean) => {
+		// 	const userRooms = (await usersInChatsCollection.find({chatId: message?.chatId}).toArray())
+		// 		.filter((item) => (user ? item.userId.toString() !== userId : item.userId.toString() === userId))
+		// 		.map((item) => item.userId);
+		// 	const users = await usersCollection.find({_id: {$in: userRooms}}).toArray();
+		// 	return users.map((user) => user.name).join(', ');
+		// }
+		//
 		return {
 			message: {
 				...message,
 				author,
 			},
-			userChatName: await getChatName(true),
-			contactChatName: await getChatName(false),
+		// 	userChatName: await getChatName(true),
+		// 	contactChatName: await getChatName(false),
 		} ?? null;
 	}
 	
