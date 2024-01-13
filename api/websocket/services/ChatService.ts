@@ -65,22 +65,22 @@ class ChatService extends WebSocketService {
 	private static async getChat() {
 		const userId = this.payload?.data.userId ?? '';
 		const chatId = this.payload?.data.chatId ?? '';
-		
+
 		const usersCollection = await this.getCollection('users');
 		const messagesCollection = await this.getCollection('messages');
-		const usersInChats = await this.getCollection('users_in_chats');
+		const chatsCollection = await this.getCollection('chats');
 		
-		const usersId = (await usersInChats.find({chatId: new ObjectId(chatId)}).toArray())
-			.filter((chat) => chat.userId.toString() !== userId)
-			.map((chat) => new ObjectId(chat.userId));
+		const usersId = (await chatsCollection.findOne({_id: new ObjectId(chatId)}))?.users
+			.filter((id: ObjectId) => id.toString() !== userId);
 		
 		const users = await usersCollection.find({_id: {$in: usersId}}).toArray();
+
 		const messages = await messagesCollection.find({chatId: new ObjectId(chatId)}).toArray();
-		
+
 		for (const message of messages) {
 			message.author = await usersCollection.findOne({_id: message.userId});
 		}
-		
+
 		return {
 			users,
 			messages,
