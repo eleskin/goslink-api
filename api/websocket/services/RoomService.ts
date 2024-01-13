@@ -33,13 +33,29 @@ class RoomService extends WebSocketService {
 		const usersCollection = await UserService.getCollection('users');
 		const chatsCollection = await UserService.getCollection('chats');
 		
-		const chatsId = (await chatsCollection.find({
+		const chats = await chatsCollection.find({
 			users: {
-				$all: [new ObjectId(userId)]
-			}
-		}).toArray()).map((chat) => chat._id.toString());
+				$all: [new ObjectId(userId)],
+			},
+		}).toArray();
 		
-		console.log(chatsId);
+		// console.log(chats);
+		
+		const rooms = [];
+		
+		for (const chat of chats) {
+			const usersId = chat.users.filter((id: string) => id.toString() !== userId);
+			const name = (await usersCollection.find({_id: {$in: usersId}}).toArray())
+				.map((user) => user.name)
+				.join(', ');
+			
+			rooms.push({
+				_id: chat._id,
+				name,
+			});
+		}
+		
+		console.log(rooms);
 		// const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
 		// 	.map((item) => item.chatId))];
 		// const messages = await messagesCollection.find({
@@ -102,10 +118,10 @@ class RoomService extends WebSocketService {
 		// 	rooms.push(room);
 		// }
 		//
-		// return {
-		// 	rooms,
-		// 	// onlineRooms: Array.from(OnlineUsers.getUsers(userId))
-		// } ?? null;
+		return {
+			rooms,
+			// 	// onlineRooms: Array.from(OnlineUsers.getUsers(userId))
+		} ?? null;
 	}
 }
 
