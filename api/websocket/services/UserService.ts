@@ -20,9 +20,6 @@ class UserService extends WebSocketService {
 			case 'SEARCH_USER':
 				return await this.searchUser();
 			
-			case 'GET_USER':
-				return await this.getUser();
-			
 			case 'ONLINE_USER':
 				return await this.onlineUser();
 			
@@ -41,37 +38,6 @@ class UserService extends WebSocketService {
 		
 		return {
 			user: await usersCollection.findOne({username: contactUsername}),
-		} ?? null;
-	}
-	
-	private static async getUser() {
-		const userId = this.payload?.data.userId ?? '';
-		const contactId = this.payload?.data.contactId ?? '';
-		
-		const usersCollection = await this.getCollection('users');
-		const messagesCollection = await this.getCollection('messages');
-		
-		const messages = await messagesCollection.find({
-			$or: [
-				{$and: [{contactId: new ObjectId(contactId), userId: new ObjectId(userId)}]},
-				{$and: [{contactId: new ObjectId(userId), userId: new ObjectId(contactId)}]},
-			],
-		}).sort({'dateObject': 1}).toArray();
-		
-		const user = await usersCollection.findOne({_id: new ObjectId(userId)});
-		const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
-		
-		for (const message of messages) {
-			if (message.userId.toString() === userId) {
-				message.author = user;
-			} else if (message.userId.toString() === contactId) {
-				message.author = contact;
-			}
-		}
-		
-		return {
-			user: await usersCollection.findOne({_id: new ObjectId(contactId)}),
-			messages,
 		} ?? null;
 	}
 	
