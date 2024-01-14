@@ -18,7 +18,7 @@ class RoomService extends WebSocketService {
 		};
 		
 		switch (this.payload?.type) {
-			case 'GET_CHAT':
+			case 'GET_ROOM':
 				return await this.getRoom();
 		}
 		

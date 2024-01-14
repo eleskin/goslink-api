@@ -16,6 +16,8 @@ class ChatService extends WebSocketService {
 		};
 		
 		switch (this.payload?.type) {
+			case 'GET_CHAT':
+				return await this.getChat();
 			case 'NEW_CHAT':
 				return await this.newChat();
 		}
