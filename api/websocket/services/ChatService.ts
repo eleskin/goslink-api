@@ -102,58 +102,6 @@ class ChatService extends WebSocketService {
 			});
 		}
 		
-		// const chatsId = [...new Set((await usersInChatsCollection.find({userId: new ObjectId(userId)}).toArray())
-		// 	.map((item) => item.chatId))];
-		// const messages = await messagesCollection.find({
-		// 	chatId: {$in: chatsId},
-		// }).toArray();
-		//
-		
-		//
-		
-		
-		// const usersId = new Set(messages.map((message) => message.userId.toString()));
-		// const contactsId = new Set(messages.map((message) => message.contactId.toString()));
-		//
-		// const allId = [...new Set([...usersId, ...contactsId])].filter((id) => id !== userId);
-		//
-		// const rooms = [];
-		//
-		// for (const _id of allId) {
-		// 	const room = await usersCollection.findOne({_id: new ObjectId(_id)});
-		//
-		// 	if (room) {
-		// 		const key1 = `${userId}_${_id}`;
-		// 		const key2 = `${_id}_${userId}`;
-		//
-		// 		const lastMessage = sortedMessages[key1] || sortedMessages[key2] || null;
-		//
-		// 		rooms.push({...room, lastMessage});
-		// 	}
-		// }
-		// const rooms: any[] = [];
-		//
-		// for (const message of sortedMessages) {
-		// 	const room: any = {
-		// 		_id: '',
-		// 		name: '',
-		// 		lastMessage: {},
-		// 	};
-		//
-		// 	const userRooms = (await usersInChatsCollection.find({chatId: message.chatId}).toArray())
-		// 		.filter((item) => item.userId.toString() !== userId)
-		// 		.map((item) => item.userId);
-		// 	const users = await usersCollection.find({_id: {$in: userRooms}}).toArray();
-		// 	const name = users.map((user) => user.name).join(', ');
-		//
-		// 	room._id = message.chatId;
-		// 	room.name = name;
-		// 	room.lastMessage = message;
-		//
-		// 	rooms.push(room);
-		// }
-		//
-		
 		rooms.sort((room1: any, room2: any) => {
 			const date1 = new Date(room1.lastMessage?.dateObject);
 			const date2 = new Date(room2.lastMessage?.dateObject);
