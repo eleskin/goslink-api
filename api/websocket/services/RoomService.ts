@@ -127,7 +127,7 @@ class RoomService extends WebSocketService {
 		
 		return {
 			rooms,
-			// 	// onlineRooms: Array.from(OnlineUsers.getUsers(userId))
+			onlineRooms: Array.from(OnlineUsers.getUsers(userId))
 		} ?? null;
 	}
 }
