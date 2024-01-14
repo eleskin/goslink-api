@@ -107,8 +107,8 @@ class ChatService extends WebSocketService {
 		});
 		
 		return {
-			rooms: chats,
-			onlineRooms: Array.from(OnlineUsers.getUsers(userId))
+			chats,
+			onlineChats: Array.from(OnlineUsers.getUsers(userId))
 		} ?? null;
 	}
 }
