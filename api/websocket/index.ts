@@ -34,15 +34,20 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	
 	ws.on('message', async (payload: Payload) => {
 		payload = JSON.parse(payload.toString());
+		const chatsCollection = await UserService.getCollection('chats');
+		
+		let users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
+			.map((user: ObjectId) => user.toString()) || [];
+		
 		const data = await handleMessageWebSocket(payload);
 		
 		if (!data) return;
 		
 		if (payload.data.chatId && groupResponses.includes(payload.type)) {
-			const chatsCollection = await UserService.getCollection('chats');
-			const users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-				.map((user: ObjectId) => user.toString()) || [];
-			
+			if (!users.length) {
+				users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
+					.map((user: ObjectId) => user.toString()) || [];
+			}
 			
 			for (const [_id, client] of activeClients.entries()) {
 				if (users.includes(_id)) {
