@@ -77,8 +77,6 @@ class ChatService extends WebSocketService {
 			},
 		}).toArray();
 		
-		const rooms = [];
-		
 		for (const chat of chats) {
 			const usersId = chat.users.filter((id: string) => id.toString() !== userId);
 			const name = (await usersCollection.find({_id: {$in: usersId}}).toArray())
@@ -95,16 +93,13 @@ class ChatService extends WebSocketService {
 				return acc;
 			}, {}));
 			
-			rooms.push({
-				_id: chat._id,
-				name,
-				lastMessage: sortedMessages[0],
-			});
+			chat.name = name;
+			chat.lastMessage = sortedMessages[0];
 		}
 		
-		rooms.sort((room1: any, room2: any) => {
-			const date1 = new Date(room1.lastMessage?.dateObject);
-			const date2 = new Date(room2.lastMessage?.dateObject);
+		chats.sort((chat1: any, chat2: any) => {
+			const date1 = new Date(chat1.lastMessage?.dateObject);
+			const date2 = new Date(chat2.lastMessage?.dateObject);
 			
 			if (date1 > date2) return -1;
 			if (date1 < date2) return 1;
@@ -112,7 +107,7 @@ class ChatService extends WebSocketService {
 		});
 		
 		return {
-			rooms,
+			rooms: chats,
 			onlineRooms: Array.from(OnlineUsers.getUsers(userId))
 		} ?? null;
 	}
