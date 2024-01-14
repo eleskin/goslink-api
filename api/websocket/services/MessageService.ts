@@ -112,24 +112,16 @@ class MessageService extends WebSocketService {
 	
 	private static async readAllMessage() {
 		const _id = this.payload?.data._id ?? '';
-		const userId = this.payload?.data.userId ?? '';
-		const contactId = this.payload?.data.contactId ?? '';
 		
 		const messagesCollection = await this.getCollection('messages');
-		
+		const chatId = (await messagesCollection.findOne({_id: new ObjectId(_id)}))?.chatId;
+
 		await messagesCollection.updateMany({
-			$and: [
-				{contactId: new ObjectId(contactId)},
-				{userId: new ObjectId(userId)},
-			],
+			chatId,
 		}, {$set: {checked: true}});
 		await messagesCollection.updateOne({_id: new ObjectId(_id)}, {$set: {checked: true}});
-		
-		return {
-			_id,
-			contactId,
-			userId,
-		};
+
+		return {_id};
 	}
 	
 	private static async searchMessage() {
