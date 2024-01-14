@@ -16,8 +16,6 @@ class ChatService extends WebSocketService {
 		};
 		
 		switch (this.payload?.type) {
-			case 'GET_CHAT':
-				return await this.getChat();
 			case 'NEW_CHAT':
 				return await this.newChat();
 		}
@@ -60,34 +58,6 @@ class ChatService extends WebSocketService {
 			};
 		} else {
 		}
-	}
-	
-	private static async getChat() {
-		const userId = this.payload?.data.userId ?? '';
-		const chatId = this.payload?.data.chatId ?? '';
-
-		const usersCollection = await this.getCollection('users');
-		const messagesCollection = await this.getCollection('messages');
-		const chatsCollection = await this.getCollection('chats');
-		
-		const usersId = (await chatsCollection.findOne({_id: new ObjectId(chatId), users: new ObjectId(userId)}))?.users
-			.filter((id: ObjectId) => id.toString() !== userId);
-		
-		
-		if (!usersId) return {};
-		
-		const users = await usersCollection.find({_id: {$in: usersId}}).toArray();
-
-		const messages = await messagesCollection.find({chatId: new ObjectId(chatId)}).toArray();
-
-		for (const message of messages) {
-			message.author = await usersCollection.findOne({_id: message.userId});
-		}
-
-		return {
-			users,
-			messages,
-		};
 	}
 }
 
