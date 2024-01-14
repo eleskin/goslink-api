@@ -82,9 +82,9 @@ class MessageService extends WebSocketService {
 		
 		await messagesCollection.deleteOne({_id: new ObjectId(_id)});
 		
-		const chatMessage = await messagesCollection.findOne({chatId: deletedMessage?.chatId});
+		const chatMessages = await messagesCollection.find({chatId: deletedMessage?.chatId}).toArray();
 		
-		if (!chatMessage) {
+		if (!chatMessages.length) {
 			await chatsCollection.deleteOne({_id: deletedMessage?.chatId});
 		}
 		
