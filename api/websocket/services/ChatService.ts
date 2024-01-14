@@ -73,6 +73,7 @@ class ChatService extends WebSocketService {
 		const usersId = (await chatsCollection.findOne({_id: new ObjectId(chatId), users: new ObjectId(userId)}))?.users
 			.filter((id: ObjectId) => id.toString() !== userId);
 		
+		
 		if (!usersId) return {};
 		
 		const users = await usersCollection.find({_id: {$in: usersId}}).toArray();
