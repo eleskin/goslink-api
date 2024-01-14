@@ -43,8 +43,15 @@ class UserService extends WebSocketService {
 	
 	private static async onlineUser() {
 		const userId = this.payload?.data.userId;
-		const contactId = this.payload?.data.contactId;
-		OnlineUsers.setUser(contactId, userId);
+		const chatId = this.payload?.data.chatId;
+		
+		const chatsCollection = await this.getCollection('chats');
+		
+		const users = (await chatsCollection.findOne({_id: new ObjectId(chatId)}))?.users || [];
+		
+		for (const user of users) {
+			if (user.toString() !== userId) OnlineUsers.setUser(user.toString(), userId);
+		}
 		
 		return {
 			userId: userId ?? '',

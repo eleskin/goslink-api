@@ -39,8 +39,6 @@ class RoomService extends WebSocketService {
 			},
 		}).toArray();
 		
-		// console.log(chats);
-		
 		const rooms = [];
 		
 		for (const chat of chats) {

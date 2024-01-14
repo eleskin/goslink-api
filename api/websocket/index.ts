@@ -46,7 +46,6 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 			
 			for (const [_id, client] of activeClients.entries()) {
 				if (users.includes(_id)) {
-					console.log(_id);
 					client.send(JSON.stringify({
 						type: payload.type,
 						data,
