@@ -50,7 +50,7 @@ class MessageService extends WebSocketService {
 			text,
 		});
 		const message: any = await messagesCollection.findOne({_id: insertedId});
-		message.author = await usersCollection.findOne({_id: new ObjectId(userId)})
+		message.author = await usersCollection.findOne({_id: new ObjectId(userId)});
 		
 		return {
 			message,
@@ -76,10 +76,17 @@ class MessageService extends WebSocketService {
 		const _id = this.payload?.data._id ?? '';
 		
 		const messagesCollection = await this.getCollection('messages');
+		const chatsCollection = await this.getCollection('chats');
 		
 		const deletedMessage = await messagesCollection.findOne({_id: new ObjectId(_id)});
 		
 		await messagesCollection.deleteOne({_id: new ObjectId(_id)});
+		
+		const chatMessage = await messagesCollection.findOne({chatId: deletedMessage?.chatId});
+		
+		if (!chatMessage) {
+			await chatsCollection.deleteOne({_id: deletedMessage?.chatId});
+		}
 		
 		return {
 			deletedMessage,
@@ -101,12 +108,12 @@ class MessageService extends WebSocketService {
 		
 		const messagesCollection = await this.getCollection('messages');
 		const chatId = (await messagesCollection.findOne({_id: new ObjectId(_id)}))?.chatId;
-
+		
 		await messagesCollection.updateMany({
 			chatId,
 		}, {$set: {checked: true}});
 		await messagesCollection.updateOne({_id: new ObjectId(_id)}, {$set: {checked: true}});
-
+		
 		return {_id};
 	}
 	
@@ -125,24 +132,24 @@ class MessageService extends WebSocketService {
 			$and: [
 				{chatId: {$in: chatsId}},
 				{text: {$regex: searchValue}},
-			]
+			],
 		}).toArray();
-
+		
 		const users = [];
-
+		
 		for (const message of searchedMessages) {
 			const user = await usersCollection.findOne({_id: new ObjectId(message.userId)});
-
+			
 			if (user) {
 				user.lastMessage = message;
 			}
-
+			
 			users.push(user);
 		}
-
+		
 		return {
 			searchedMessages: users,
-		}
+		};
 	}
 	
 	private static async getMessage() {
