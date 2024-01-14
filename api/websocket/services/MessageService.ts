@@ -136,30 +136,32 @@ class MessageService extends WebSocketService {
 		const userId = this.payload?.data.userId ?? '';
 		const searchValue = this.payload?.data.searchValue ?? '';
 		
+		const chatsCollection = await this.getCollection('chats');
 		const usersCollection = await this.getCollection('users');
 		const messagesCollection = await this.getCollection('messages');
 		
+		const chatsId = (await chatsCollection.find({users: new ObjectId(userId)}).toArray())
+			.map((chat) => chat._id);
+		
 		const searchedMessages = await messagesCollection.find({
 			$and: [
-				{$or: [{userId: new ObjectId(userId)}, {contactId: new ObjectId(userId)}]},
-				{text: {$regex : searchValue}},
+				{chatId: {$in: chatsId}},
+				{text: {$regex: searchValue}},
 			]
 		}).toArray();
-		
+
 		const users = [];
-		
+
 		for (const message of searchedMessages) {
-			const _id = message.userId.toString() === userId ? message.contactId : message.userId;
-			
-			const user = await usersCollection.findOne({_id: new ObjectId(_id)});
-			
+			const user = await usersCollection.findOne({_id: new ObjectId(message.userId)});
+
 			if (user) {
 				user.lastMessage = message;
 			}
-			
+
 			users.push(user);
 		}
-		
+
 		return {
 			searchedMessages: users,
 		}
