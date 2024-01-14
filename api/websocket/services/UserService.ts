@@ -53,9 +53,6 @@ class UserService extends WebSocketService {
 			if (user.toString() !== userId) OnlineUsers.setUser(user.toString(), userId);
 		}
 		
-		console.log(OnlineUsers)
-		
-		
 		return {
 			userId: userId ?? '',
 		} ?? null;
