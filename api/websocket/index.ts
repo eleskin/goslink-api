@@ -41,7 +41,7 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 		if (payload.data.chatId && groupResponses.includes(payload.type)) {
 			const chatsCollection = await UserService.getCollection('chats');
 			const users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-				.map((user: ObjectId) => user.toString());
+				.map((user: ObjectId) => user.toString()) || [];
 			
 			
 			for (const [_id, client] of activeClients.entries()) {

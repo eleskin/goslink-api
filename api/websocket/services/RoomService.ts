@@ -117,8 +117,8 @@ class RoomService extends WebSocketService {
 		//
 		
 		rooms.sort((room1: any, room2: any) => {
-			const date1 = new Date(room1.lastMessage.dateObject);
-			const date2 = new Date(room2.lastMessage.dateObject);
+			const date1 = new Date(room1.lastMessage?.dateObject);
+			const date2 = new Date(room2.lastMessage?.dateObject);
 
 			if (date1 > date2) return -1;
 			if (date1 < date2) return 1;
