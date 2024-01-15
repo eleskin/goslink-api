@@ -143,13 +143,17 @@ class ChatService extends WebSocketService {
 		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
 		
 		if (chat?.group) {
-			await chatsCollection.updateOne({
-				_id: new ObjectId(chatId)
-			}, {
-				$set: {
-					users: chat.users.filter((_id: ObjectId) => _id.toString() !== userId)
-				}
-			})
+			if (chat.users.length > 1) {
+				await chatsCollection.updateOne({
+					_id: new ObjectId(chatId),
+				}, {
+					$set: {
+						users: chat.users.filter((_id: ObjectId) => _id.toString() !== userId),
+					},
+				});
+			} else {
+				await chatsCollection.deleteOne({_id: new ObjectId(chatId)});
+			}
 		} else {
 			await chatsCollection.deleteOne({_id: new ObjectId(chatId)});
 		}
