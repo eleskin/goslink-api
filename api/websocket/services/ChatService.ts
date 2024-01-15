@@ -20,6 +20,8 @@ class ChatService extends WebSocketService {
 		switch (this.payload?.type) {
 			case 'NEW_CHAT':
 				return await this.newChat();
+			case 'NEW_GROUP_CHAT':
+				return await this.newGroupChat();
 			case 'GET_CHAT':
 				return await this.getChat();
 		}
@@ -51,6 +53,7 @@ class ChatService extends WebSocketService {
 			if (!chat) {
 				const {insertedId} = await chatsCollection.insertOne({
 					users: [new ObjectId(userId), new ObjectId(contactId)],
+					group: false,
 				});
 				
 				chat = await chatsCollection.findOne({_id: insertedId});
@@ -62,6 +65,23 @@ class ChatService extends WebSocketService {
 			};
 		} else {
 		}
+	}
+	
+	private static async newGroupChat() {
+		const userId = this.payload?.data.userId ?? '';
+		
+		const chatsCollection = await this.getCollection('chats');
+		
+		const {insertedId} = await chatsCollection.insertOne({
+			users: [new ObjectId(userId)],
+			group: true,
+		});
+		
+		const chat = await chatsCollection.findOne({_id: insertedId});
+		
+		return {
+			chat,
+		};
 	}
 	
 	private static async getChat() {
@@ -93,7 +113,7 @@ class ChatService extends WebSocketService {
 				return acc;
 			}, {}));
 			
-			chat.name = name;
+			chat.name = name || 'Group chat';
 			chat.lastMessage = sortedMessages[0];
 		}
 		
@@ -108,7 +128,7 @@ class ChatService extends WebSocketService {
 		
 		return {
 			chats,
-			onlineChats: Array.from(OnlineUsers.getUsers(userId))
+			onlineChats: Array.from(OnlineUsers.getUsers(userId)),
 		} ?? null;
 	}
 }
