@@ -26,6 +26,8 @@ class ChatService extends WebSocketService {
 				return await this.getChat();
 			case 'DELETE_CHAT':
 				return await this.deleteChat();
+			case 'ADD_USER_CHAT':
+				return await this.addUserChat();
 		}
 		
 		return () => {
@@ -161,6 +163,25 @@ class ChatService extends WebSocketService {
 		return {
 			chat,
 		};
+	}
+	
+	private static async addUserChat() {
+		const chatId = this.payload?.data.chatId ?? '';
+		const contactId = this.payload?.data.contactId ?? '';
+		
+		const chatsCollection = await UserService.getCollection('chats');
+		
+		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
+		
+		await chatsCollection.updateOne({_id: chat?._id}, {
+			$set: {
+				users: [...chat?.users, new ObjectId(contactId)],
+			},
+		});
+		
+		return {
+			chat,
+		}
 	}
 }
 
