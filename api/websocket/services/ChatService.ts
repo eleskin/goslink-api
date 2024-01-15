@@ -24,6 +24,8 @@ class ChatService extends WebSocketService {
 				return await this.newGroupChat();
 			case 'GET_CHAT':
 				return await this.getChat();
+			case 'DELETE_CHAT':
+				return await this.deleteChat();
 		}
 		
 		return () => {
@@ -130,6 +132,31 @@ class ChatService extends WebSocketService {
 			chats,
 			onlineChats: Array.from(OnlineUsers.getUsers(userId)),
 		} ?? null;
+	}
+	
+	private static async deleteChat() {
+		const userId = this.payload?.data.userId ?? '';
+		const chatId = this.payload?.data.chatId ?? '';
+		
+		const chatsCollection = await UserService.getCollection('chats');
+		
+		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
+		
+		if (chat?.group) {
+			await chatsCollection.updateOne({
+				_id: new ObjectId(chatId)
+			}, {
+				$set: {
+					users: chat.users.filter((_id: ObjectId) => _id.toString() !== userId)
+				}
+			})
+		} else {
+			await chatsCollection.deleteOne({_id: new ObjectId(chatId)});
+		}
+		
+		return {
+			chat,
+		};
 	}
 }
 
