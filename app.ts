@@ -6,7 +6,7 @@ import logger from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import apiUserAuthRouter from './legacy_api/user/auth';
+import apiUserAuthRouter from './api/user/auth';
 import apiWebSocketRouter from './api/websocket';
 
 dotenv.config();
