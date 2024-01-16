@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import authenticateJWT from '../../services/functions/authenticateJWT';
 import 'dotenv/config';
 import getCollection from '../../services/functions/getCollection';
+import User from '../../types/User';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET ?? '';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET ?? '';
 
 router.post('/', (req, res) => {
-	const {refreshToken} = req.body;
+	const refreshToken: string = req.body.refreshToken;
 	const accessToken = req.headers.authorization;
 	
 	if (!accessToken || !refreshToken) {
@@ -29,7 +30,7 @@ router.post('/', (req, res) => {
 			}
 			
 			const usersCollection = await getCollection('users');
-			const user = await usersCollection.findOne({email: tokenUser.email});
+			const user = await usersCollection.findOne<User>({email: tokenUser.email});
 			
 			if (user?.refreshToken !== refreshToken.split(' ')[1]) {
 				return res.status(403).send();
@@ -44,10 +45,10 @@ router.post('/', (req, res) => {
 			return res.status(200).send({
 				accessToken,
 				user: {
-					_id: user?._id,
-					name: user?.name,
-					username: user?.username,
-					email: user?.email,
+					_id: user._id,
+					name: user.name,
+					username: user.username,
+					email: user.email,
 				},
 			});
 		});
@@ -55,11 +56,12 @@ router.post('/', (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-	const {email, password} = req.body;
+	const email: string = req.body.email;
+	const password: string = req.body.password;
 	
 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
 		const usersCollection = await getCollection('users');
-		const user = await usersCollection.findOne({email});
+		const user = await usersCollection.findOne<User>({email});
 		
 		if (user) {
 			return res.status(400).send({
@@ -77,24 +79,24 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-	const {email, password, remember} = req.body;
+	const email: string = req.body.email;
+	const password: string = req.body.password;
+	const remember: string = req.body.remember;
 	
 	const usersCollection = await getCollection('users');
-	const users = await usersCollection.find({email}).toArray();
+	const user = await usersCollection.findOne<User>({email});
 	
-	const isExistUser = Boolean(users.length);
-	
-	if (!isExistUser) {
+	if (!user) {
 		return res.status(400).send({
 			message: 'There is no user with this email address',
 		});
 	} else {
-		bcrypt.compare(password, users?.[0]?.password, (err, result) => {
+		bcrypt.compare(password, user.password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
 				const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
 				
-				usersCollection.replaceOne({email}, {...users?.[0], refreshToken});
+				usersCollection.replaceOne({email}, {...user, refreshToken});
 				
 				return res.status(200).send({
 					accessToken,
@@ -110,21 +112,21 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', authenticateJWT, (req, res) => {
-	const {accessToken} = req.body;
+	const accessToken: string = req.body.accessToken;
 	
 	if (!accessToken) {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], ACCESS_TOKEN_SECRET, async (err: any, user: any) => {
+	jwt.verify(accessToken.split(' ')[1], ACCESS_TOKEN_SECRET, async (err: any, tokenUser: any) => {
 		if (err) {
 			return res.status(403).send();
 		}
 		
 		const usersCollection = await getCollection('users');
-		const users = await usersCollection.find({email: user.email}).toArray();
+		const user = await usersCollection.findOne<User>({email: tokenUser.email});
 
-		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});
+		await usersCollection.replaceOne({email: tokenUser.email}, {...user, refreshToken: null});
 
 		return res.status(200).send('Logout successful');
 	});
