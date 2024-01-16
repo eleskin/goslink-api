@@ -1,10 +1,9 @@
-import WebSocketService from './WebSocketService';
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
-import UserService from './UserService';
 import OnlineUsers from '../utils/onlineUsers';
+import getCollection from '../../../services/functions/getCollection';
 
-class ChatService extends WebSocketService {
+class ChatService {
 	private static payload: Payload | undefined;
 	
 	public static async setPayload(payload: Payload) {
@@ -38,8 +37,8 @@ class ChatService extends WebSocketService {
 		const userId = this.payload?.data.userId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
 		
-		const chatsCollection = await this.getCollection('chats');
-		const usersCollection = await this.getCollection('users');
+		const chatsCollection = await getCollection('chats');
+		const usersCollection = await getCollection('users');
 		
 		if (contactId) {
 			const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
@@ -74,7 +73,7 @@ class ChatService extends WebSocketService {
 	private static async newGroupChat() {
 		const userId = this.payload?.data.userId ?? '';
 		
-		const chatsCollection = await this.getCollection('chats');
+		const chatsCollection = await getCollection('chats');
 		
 		const {insertedId} = await chatsCollection.insertOne({
 			users: [new ObjectId(userId)],
@@ -91,9 +90,9 @@ class ChatService extends WebSocketService {
 	private static async getChat() {
 		const userId = this.payload?.data.userId;
 		
-		const messagesCollection = await this.getCollection('messages');
-		const usersCollection = await UserService.getCollection('users');
-		const chatsCollection = await UserService.getCollection('chats');
+		const messagesCollection = await getCollection('messages');
+		const usersCollection = await getCollection('users');
+		const chatsCollection = await getCollection('chats');
 		
 		const chats = await chatsCollection.find({
 			users: {
@@ -140,7 +139,7 @@ class ChatService extends WebSocketService {
 		const userId = this.payload?.data.userId ?? '';
 		const chatId = this.payload?.data.chatId ?? '';
 		
-		const chatsCollection = await UserService.getCollection('chats');
+		const chatsCollection = await getCollection('chats');
 		
 		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
 		
@@ -169,7 +168,7 @@ class ChatService extends WebSocketService {
 		const chatId = this.payload?.data.chatId ?? '';
 		const contactId = this.payload?.data.contactId ?? '';
 		
-		const chatsCollection = await UserService.getCollection('chats');
+		const chatsCollection = await getCollection('chats');
 		
 		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
 		

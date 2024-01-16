@@ -1,8 +1,8 @@
 import {Payload} from '../types';
-import WebSocketService from './WebSocketService';
 import {ObjectId} from 'mongodb';
+import getCollection from '../../../services/functions/getCollection';
 
-class MessageService extends WebSocketService {
+class MessageService {
 	private static payload: Payload | undefined;
 	
 	public static async setPayload(payload: Payload) {
@@ -39,8 +39,8 @@ class MessageService extends WebSocketService {
 	private static async newMessage() {
 		const {userId, chatId, text} = this.payload?.data as any;
 		
-		const messagesCollection = await this.getCollection('messages');
-		const usersCollection = await this.getCollection('users');
+		const messagesCollection = await getCollection('messages');
+		const usersCollection = await getCollection('users');
 		
 		const {insertedId} = await messagesCollection.insertOne({
 			dateObject: new Date().toUTCString(),
@@ -58,7 +58,7 @@ class MessageService extends WebSocketService {
 	}
 	
 	private static async editMessage() {
-		const messagesCollection = await this.getCollection('messages');
+		const messagesCollection = await getCollection('messages');
 		
 		await messagesCollection.updateOne(
 			{_id: new ObjectId(this.payload?.data._id)},
@@ -75,8 +75,8 @@ class MessageService extends WebSocketService {
 	private static async deleteMessage() {
 		const _id = this.payload?.data._id ?? '';
 		
-		const messagesCollection = await this.getCollection('messages');
-		const chatsCollection = await this.getCollection('chats');
+		const messagesCollection = await getCollection('messages');
+		const chatsCollection = await getCollection('chats');
 		
 		const deletedMessage = await messagesCollection.findOne({_id: new ObjectId(_id)});
 		
@@ -96,7 +96,7 @@ class MessageService extends WebSocketService {
 	private static async readMessage() {
 		const _id = this.payload?.data._id ?? '';
 		
-		const messagesCollection = await this.getCollection('messages');
+		const messagesCollection = await getCollection('messages');
 		
 		await messagesCollection.updateOne({_id: new ObjectId(_id)}, {$set: {checked: true}});
 		
@@ -106,7 +106,7 @@ class MessageService extends WebSocketService {
 	private static async readAllMessage() {
 		const _id = this.payload?.data._id ?? '';
 		
-		const messagesCollection = await this.getCollection('messages');
+		const messagesCollection = await getCollection('messages');
 		const chatId = (await messagesCollection.findOne({_id: new ObjectId(_id)}))?.chatId;
 		
 		await messagesCollection.updateMany({
@@ -121,9 +121,9 @@ class MessageService extends WebSocketService {
 		const userId = this.payload?.data.userId ?? '';
 		const searchValue = this.payload?.data.searchValue ?? '';
 		
-		const chatsCollection = await this.getCollection('chats');
-		const usersCollection = await this.getCollection('users');
-		const messagesCollection = await this.getCollection('messages');
+		const chatsCollection = await getCollection('chats');
+		const usersCollection = await getCollection('users');
+		const messagesCollection = await getCollection('messages');
 		
 		const chatsId = (await chatsCollection.find({users: new ObjectId(userId)}).toArray())
 			.map((chat) => chat._id);
@@ -156,9 +156,9 @@ class MessageService extends WebSocketService {
 		const userId = this.payload?.data.userId ?? '';
 		const chatId = this.payload?.data.chatId ?? '';
 		
-		const usersCollection = await this.getCollection('users');
-		const messagesCollection = await this.getCollection('messages');
-		const chatsCollection = await this.getCollection('chats');
+		const usersCollection = await getCollection('users');
+		const messagesCollection = await getCollection('messages');
+		const chatsCollection = await getCollection('chats');
 		
 		const usersId = (await chatsCollection.findOne({_id: new ObjectId(chatId), users: new ObjectId(userId)}))?.users
 			.filter((id: ObjectId) => id.toString() !== userId);

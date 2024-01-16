@@ -1,9 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import client from '../../services/client';
 import authenticateJWT from '../../services/functions/authenticateJWT';
 import 'dotenv/config';
+import getCollection from '../../services/functions/getCollection';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
 				return res.status(403).send();
 			}
 			
-			const usersCollection = client.db('goslink').collection('users');
+			const usersCollection = await getCollection('users');
 			const user = await usersCollection.findOne({email: tokenUser.email});
 			
 			if (user?.refreshToken !== refreshToken.split(' ')[1]) {
@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
 	console.log(email);
 	
 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
-		const usersCollection = client.db('goslink').collection('users');
+		const usersCollection = await getCollection('users');
 		const user = await usersCollection.findOne({email});
 		
 		if (user) {
@@ -77,7 +77,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
 	const {email, password, remember} = req.body;
 	
-	const usersCollection = client.db('goslink').collection('users');
+	const usersCollection = await getCollection('users');
 	const users = await usersCollection.find({email}).toArray();
 	
 	const isExistUser = Boolean(users.length);
@@ -119,7 +119,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
 			return res.status(403).send();
 		}
 		
-		const usersCollection = await client.db('goslink').collection('users');
+		const usersCollection = await getCollection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
 
 		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});

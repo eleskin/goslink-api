@@ -4,8 +4,8 @@ import WebSocket from 'ws';
 import handleMessageWebSocket from './handlers/handleMessageWebSocket';
 import {Payload} from './types';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
-import UserService from './services/UserService';
 import {ObjectId} from 'mongodb';
+import getCollection from '../../services/functions/getCollection';
 
 const app = express();
 
@@ -34,7 +34,7 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	
 	ws.on('message', async (payload: Payload) => {
 		payload = JSON.parse(payload.toString());
-		const chatsCollection = await UserService.getCollection('chats');
+		const chatsCollection = await getCollection('chats');
 		
 		let users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
 			.map((user: ObjectId) => user.toString()) || [];

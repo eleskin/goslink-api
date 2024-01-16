@@ -1,9 +1,9 @@
 import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
-import WebSocketService from './WebSocketService';
 import OnlineUsers from '../utils/onlineUsers';
+import getCollection from '../../../services/functions/getCollection';
 
-class UserService extends WebSocketService {
+class UserService {
 	private static payload: Payload;
 	
 	public static async setPayload(payload: Payload) {
@@ -34,7 +34,7 @@ class UserService extends WebSocketService {
 	private static async searchUser() {
 		const contactUsername = this.payload?.data.contactUsername ?? '';
 		
-		const usersCollection = await this.getCollection('users');
+		const usersCollection = await getCollection('users');
 		
 		return {
 			user: await usersCollection.findOne({username: contactUsername}),
@@ -45,7 +45,7 @@ class UserService extends WebSocketService {
 		const userId = this.payload?.data.userId;
 		const chatId = this.payload?.data.chatId;
 		
-		const chatsCollection = await this.getCollection('chats');
+		const chatsCollection = await getCollection('chats');
 		
 		const users = (await chatsCollection.findOne({_id: new ObjectId(chatId)}))?.users || [];
 		
