@@ -7,6 +7,9 @@ import getCollection from '../../services/functions/getCollection';
 
 const router = express.Router();
 
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET ?? '';
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET ?? '';
+
 router.post('/', (req, res) => {
 	const {refreshToken} = req.body;
 	const accessToken = req.headers.authorization;
@@ -15,12 +18,12 @@ router.post('/', (req, res) => {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET ?? '', async (err) => {
+	jwt.verify(accessToken.split(' ')[1], ACCESS_TOKEN_SECRET, async (err) => {
 		if (err) {
 			return res.status(401).send();
 		}
 		
-		jwt.verify(refreshToken.split(' ')[1], process.env.REFRESH_TOKEN_SECRET ?? '', async (err: any, tokenUser: any) => {
+		jwt.verify(refreshToken.split(' ')[1], REFRESH_TOKEN_SECRET, async (err: any, tokenUser: any) => {
 			if (err) {
 				return res.status(403).send();
 			}
@@ -34,7 +37,7 @@ router.post('/', (req, res) => {
 			
 			const accessToken = jwt.sign(
 				{email: tokenUser.email},
-				process.env.ACCESS_TOKEN_SECRET ?? '',
+				ACCESS_TOKEN_SECRET,
 				{expiresIn: '1h'},
 			);
 			
@@ -53,7 +56,6 @@ router.post('/', (req, res) => {
 
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
-	console.log(email);
 	
 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
 		const usersCollection = await getCollection('users');
@@ -64,8 +66,8 @@ router.post('/register', async (req, res) => {
 				message: 'A user with this email address already exists',
 			});
 		} else {
-			const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET ?? '', {expiresIn: '1h'});
-			const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET ?? '', {expiresIn: '1d'});
+			const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+			const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
 			
 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
 			
@@ -89,8 +91,8 @@ router.post('/login', async (req, res) => {
 	} else {
 		bcrypt.compare(password, users?.[0]?.password, (err, result) => {
 			if (result) {
-				const accessToken = jwt.sign({email}, process.env.ACCESS_TOKEN_SECRET ?? '', {expiresIn: '1h'});
-				const refreshToken = jwt.sign({email}, process.env.REFRESH_TOKEN_SECRET ?? '', !remember ? {expiresIn: '1d'} : {});
+				const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+				const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
 				
 				usersCollection.replaceOne({email}, {...users?.[0], refreshToken});
 				
@@ -114,7 +116,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
 		return res.status(401).send();
 	}
 	
-	jwt.verify(accessToken.split(' ')[1], process.env.ACCESS_TOKEN_SECRET ?? '', async (err: any, user: any) => {
+	jwt.verify(accessToken.split(' ')[1], ACCESS_TOKEN_SECRET, async (err: any, user: any) => {
 		if (err) {
 			return res.status(403).send();
 		}
