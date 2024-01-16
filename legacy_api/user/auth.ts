@@ -25,7 +25,7 @@ router.post('/', (req, res) => {
 				return res.status(403).send();
 			}
 			
-			const usersCollection = client.db('main').collection('users');
+			const usersCollection = client.db('goslink').collection('users');
 			const user = await usersCollection.findOne({email: tokenUser.email});
 			
 			if (user?.refreshToken !== refreshToken.split(' ')[1]) {
@@ -53,14 +53,13 @@ router.post('/', (req, res) => {
 
 router.post('/register', async (req, res) => {
 	const {email, password} = req.body;
+	console.log(email);
 	
 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
-		const usersCollection = client.db('main').collection('users');
-		const users = await usersCollection.find({email}).toArray();
+		const usersCollection = client.db('goslink').collection('users');
+		const user = await usersCollection.findOne({email});
 		
-		const isExistUser = Boolean(users.length);
-		
-		if (isExistUser) {
+		if (user) {
 			return res.status(400).send({
 				message: 'A user with this email address already exists',
 			});
@@ -78,7 +77,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
 	const {email, password, remember} = req.body;
 	
-	const usersCollection = await client.db('main').collection('users');
+	const usersCollection = client.db('goslink').collection('users');
 	const users = await usersCollection.find({email}).toArray();
 	
 	const isExistUser = Boolean(users.length);
@@ -120,7 +119,7 @@ router.post('/logout', authenticateJWT, (req, res) => {
 			return res.status(403).send();
 		}
 		
-		const usersCollection = await client.db('main').collection('users');
+		const usersCollection = await client.db('goslink').collection('users');
 		const users = await usersCollection.find({email: user.email}).toArray();
 
 		await usersCollection.replaceOne({email: user.email}, {...users?.[0], refreshToken: null});
