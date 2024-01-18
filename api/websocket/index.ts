@@ -2,10 +2,10 @@ import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import handleMessageWebSocket from './handlers/handleMessageWebSocket';
-import {Payload} from './types';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
 import {ObjectId} from 'mongodb';
 import getCollection from '../../services/functions/getCollection';
+import Payload from '../../types/Payload';
 
 const app = express();
 

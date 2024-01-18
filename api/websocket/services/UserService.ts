@@ -1,7 +1,7 @@
-import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
 import OnlineUsers from '../utils/onlineUsers';
 import getCollection from '../../../services/functions/getCollection';
+import Payload from '../../../types/Payload';
 
 class UserService {
 	private static payload: Payload;

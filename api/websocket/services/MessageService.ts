@@ -1,6 +1,6 @@
-import {Payload} from '../types';
 import {ObjectId} from 'mongodb';
 import getCollection from '../../../services/functions/getCollection';
+import Payload from '../../../types/Payload';
 
 class MessageService {
 	private static payload: Payload | undefined;

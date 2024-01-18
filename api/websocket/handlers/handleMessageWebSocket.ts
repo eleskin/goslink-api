@@ -1,7 +1,7 @@
 import UserService from '../services/UserService';
-import {Payload} from '../types';
 import MessageService from '../services/MessageService';
 import ChatService from '../services/ChatService';
+import Payload from '../../../types/Payload';
 
 const handleMessageWebSocket = async (payload: Payload) => {
 	const {type} = payload;
