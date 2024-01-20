@@ -41,6 +41,7 @@ class MessageService {
 		
 		const messagesCollection = await getCollection('messages');
 		const usersCollection = await getCollection('users');
+		const chatsCollection = await getCollection('chats');
 		
 		const {insertedId} = await messagesCollection.insertOne({
 			dateObject: new Date().toUTCString(),
@@ -49,8 +50,12 @@ class MessageService {
 			userId: new ObjectId(userId),
 			text,
 		});
+		
+		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
 		const message: any = await messagesCollection.findOne({_id: insertedId});
-		message.author = await usersCollection.findOne({_id: new ObjectId(userId)});
+		message.author = chat?.group ?
+			{name: 'Group chat'} :
+			(await usersCollection.findOne({_id: new ObjectId(userId)}));
 		
 		return {
 			message,
