@@ -3,6 +3,7 @@ import OnlineUsers from '../utils/onlineUsers';
 import getCollection from '../../../services/functions/getCollection';
 import Payload from '../../../types/Payload';
 import Message from '../../../types/Message';
+import Chat from '../../../types/Chat';
 
 class ChatService {
 	private static payload: Payload | undefined;
@@ -95,14 +96,14 @@ class ChatService {
 		const usersCollection = await getCollection('users');
 		const chatsCollection = await getCollection('chats');
 		
-		const chats = await chatsCollection.find({
+		const chats = await chatsCollection.find<Chat>({
 			users: {
 				$all: [new ObjectId(userId)],
 			},
 		}).toArray();
 		
 		for (const chat of chats) {
-			const usersId = chat.users.filter((id: string) => id.toString() !== userId);
+			const usersId = chat.users.filter((id) => id.toString() !== userId);
 			const names = (await usersCollection.find({_id: {$in: usersId}}).toArray())
 				.map((user) => user.name);
 			const name = chat.group ? 'Group chat' : names[0];
@@ -121,7 +122,7 @@ class ChatService {
 			chat.lastMessage = sortedMessages[0];
 		}
 		
-		chats.sort((chat1: any, chat2: any) => {
+		chats.sort((chat1, chat2) => {
 			const date1 = new Date(chat1.lastMessage?.dateObject);
 			const date2 = new Date(chat2.lastMessage?.dateObject);
 			
