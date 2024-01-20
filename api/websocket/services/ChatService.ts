@@ -102,9 +102,9 @@ class ChatService {
 		
 		for (const chat of chats) {
 			const usersId = chat.users.filter((id: string) => id.toString() !== userId);
-			const name = (await usersCollection.find({_id: {$in: usersId}}).toArray())
-				.map((user) => user.name)
-				.join(', ');
+			const names = (await usersCollection.find({_id: {$in: usersId}}).toArray())
+				.map((user) => user.name);
+			const name = chat.group ? 'Group chat' : names[0];
 			
 			const messages = await messagesCollection.find({
 				chatId: chat._id,
