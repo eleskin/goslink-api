@@ -2,6 +2,7 @@ import {ObjectId} from 'mongodb';
 import OnlineUsers from '../utils/onlineUsers';
 import getCollection from '../../../services/functions/getCollection';
 import Payload from '../../../types/Payload';
+import Message from '../../../types/Message';
 
 class ChatService {
 	private static payload: Payload | undefined;
@@ -106,11 +107,11 @@ class ChatService {
 				.map((user) => user.name);
 			const name = chat.group ? 'Group chat' : names[0];
 			
-			const messages = await messagesCollection.find({
+			const messages = await messagesCollection.find<Message>({
 				chatId: chat._id,
 			}).toArray();
 			
-			const sortedMessages: any[] = Object.values(messages.reduce((acc: any, message) => {
+			const sortedMessages: Message[] = Object.values(messages.reduce((acc: {[key: string]: Message}, message) => {
 				acc[message.chatId.toString()] = message;
 				
 				return acc;
