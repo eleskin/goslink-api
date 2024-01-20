@@ -86,7 +86,7 @@ const interval = setInterval(() => {
 	});
 }, 30000);
 
-wss.on('close', function close() {
+wss.on('close', () => {
 	clearInterval(interval);
 });
 
