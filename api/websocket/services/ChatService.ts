@@ -143,7 +143,7 @@ class ChatService {
 		
 		const chatsCollection = await getCollection('chats');
 		
-		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
+		const chat = await chatsCollection.findOne<Chat>({_id: new ObjectId(chatId)});
 		
 		if (chat?.group) {
 			if (chat.users.length > 1) {

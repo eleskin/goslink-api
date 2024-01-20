@@ -1,6 +1,8 @@
 import {ObjectId} from 'mongodb';
 import getCollection from '../../../services/functions/getCollection';
 import Payload from '../../../types/Payload';
+import Message from '../../../types/Message';
+import User from '../../../types/User';
 
 class MessageService {
 	private static payload: Payload | undefined;
@@ -37,7 +39,9 @@ class MessageService {
 	}
 	
 	private static async newMessage() {
-		const {userId, chatId, text} = this.payload?.data as any;
+		const userId: string = this.payload?.data.userId;
+		const chatId: string = this.payload?.data.chatId;
+		const text: string = this.payload?.data.text;
 		
 		const messagesCollection = await getCollection('messages');
 		const usersCollection = await getCollection('users');
@@ -52,10 +56,13 @@ class MessageService {
 		});
 		
 		const chat = await chatsCollection.findOne({_id: new ObjectId(chatId)});
-		const message: any = await messagesCollection.findOne({_id: insertedId});
-		message.author = chat?.group ?
-			{name: 'Group chat'} :
-			(await usersCollection.findOne({_id: new ObjectId(userId)}));
+		const message = await messagesCollection.findOne<Message>({_id: insertedId});
+		
+		if (message) {
+			message.author = (chat?.group ?
+				{name: 'Group chat'} :
+				(await usersCollection.findOne({_id: new ObjectId(userId)}))) as User;
+		}
 		
 		return {
 			message,
