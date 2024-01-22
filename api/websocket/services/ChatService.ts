@@ -83,6 +83,7 @@ class ChatService {
 		const {insertedId} = await chatsCollection.insertOne({
 			users: [new ObjectId(userId)],
 			group: true,
+			name: 'Group chat',
 		});
 		
 		const chat = await chatsCollection.findOne({_id: insertedId});
