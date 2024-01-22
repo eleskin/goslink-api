@@ -130,7 +130,6 @@ class MessageService {
 		const searchValue = this.payload?.data.searchValue ?? '';
 		
 		const chatsCollection = await getCollection('chats');
-		const usersCollection = await getCollection('users');
 		const messagesCollection = await getCollection('messages');
 		
 		const chatsId = (await chatsCollection.find({users: new ObjectId(userId)}).toArray())
@@ -143,20 +142,20 @@ class MessageService {
 			],
 		}).toArray();
 		
-		const users = [];
+		console.log(searchedMessages);
+		
+		const chats = [];
 		
 		for (const message of searchedMessages) {
-			const user = await usersCollection.findOne({_id: new ObjectId(message.userId)});
+			const chat = await chatsCollection.findOne({_id: message.chatId});
 			
-			if (user) {
-				user.lastMessage = message;
-			}
+			if (chat) chat.lastMessage = message;
 			
-			users.push(user);
+			chats.push(chat);
 		}
 		
 		return {
-			searchedMessages: users,
+			searchedMessages: chats,
 		};
 	}
 	
