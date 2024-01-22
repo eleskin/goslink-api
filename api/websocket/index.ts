@@ -1,11 +1,9 @@
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import handleMessageWebSocket from './handlers/handleMessageWebSocket';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
-import {ObjectId} from 'mongodb';
-import getCollection from '../../services/functions/getCollection';
 import Payload from '../../types/Payload';
+import handleMessageWebSocket from './handlers/handleMessageWebSocket';
 
 const app = express();
 
@@ -13,16 +11,6 @@ const server = http.createServer(app).listen(8000);
 const wss = new WebSocket.Server({server});
 
 const activeClients: Map<string, WebSocket> = new Map();
-
-const groupResponses = [
-	'NEW_MESSAGE',
-	'DELETE_MESSAGE',
-	'EDIT_MESSAGE',
-	'ONLINE_USER',
-	'OFFLINE_USER',
-	'READ_MESSAGE',
-	'READ_ALL_MESSAGE',
-];
 
 wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	const _id = getIdFromUrl(request);
@@ -33,39 +21,7 @@ wss.on('connection', (ws: WebSocket & { isAlive: boolean }, request) => {
 	}
 	
 	ws.on('message', async (payload: Payload) => {
-		payload = JSON.parse(payload.toString());
-		const chatsCollection = await getCollection('chats');
-		
-		let users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-			.map((user: ObjectId) => user.toString()) || [];
-		
-		const data = await handleMessageWebSocket(payload);
-		
-		if (!data) return;
-		
-		if (payload.data.chatId && groupResponses.includes(payload.type)) {
-			if (!users.length) {
-				if ((await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-					.map((user: ObjectId) => user.toString())) {
-					users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-						.map((user: ObjectId) => user.toString());
-				}
-			}
-			
-			for (const [_id, client] of activeClients.entries()) {
-				if (users.includes(_id)) {
-					client.send(JSON.stringify({
-						type: payload.type,
-						data,
-					}));
-				}
-			}
-		} else {
-			ws.send(JSON.stringify({
-				type: payload.type,
-				data,
-			}));
-		}
+		await handleMessageWebSocket(ws, payload, activeClients)
 	});
 	
 	ws.on('close', () => {
