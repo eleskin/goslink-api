@@ -56,7 +56,7 @@ class MessageService {
 		
 		const message = await messagesCollection.findOne<Message>({_id: insertedId});
 		
-		if (message?.author) {
+		if (message) {
 			message.author = (await usersCollection.findOne<User>({_id: new ObjectId(userId)})) as User;
 		}
 		
