@@ -96,7 +96,6 @@ class ChatService {
 		const userId = this.payload?.data.userId;
 		
 		const messagesCollection = await getCollection('messages');
-		const usersCollection = await getCollection('users');
 		const chatsCollection = await getCollection('chats');
 		
 		const chats = await chatsCollection.find<Chat>({
@@ -106,11 +105,6 @@ class ChatService {
 		}).toArray();
 		
 		for (const chat of chats) {
-			const usersId = chat.users.filter((id) => id.toString() !== userId);
-			const names = (await usersCollection.find({_id: {$in: usersId}}).toArray())
-				.map((user) => user.name);
-			const name = chat.group ? 'Group chat' : names[0];
-			
 			const messages = await messagesCollection.find<Message>({
 				chatId: chat._id,
 			}).toArray();
@@ -121,7 +115,6 @@ class ChatService {
 				return acc;
 			}, {}));
 			
-			chat.name = name || 'Group chat';
 			chat.lastMessage = sortedMessages[0];
 		}
 		
