@@ -3,6 +3,7 @@ import Payload from '../../../types/Payload';
 import getCollection from '../../../services/functions/getCollection';
 import {ObjectId} from 'mongodb';
 import getWsData from '../utils/getWsData';
+import Chat from '../../../types/Chat';
 
 const groupResponses = [
 	'NEW_MESSAGE',
@@ -18,8 +19,8 @@ const handleMessageWebSocket = async (ws: WebSocket, payload: Payload, activeCli
 	payload = JSON.parse(payload.toString());
 	const chatsCollection = await getCollection('chats');
 	
-	let users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-		.map((user: ObjectId) => user.toString()) || [];
+	const allUsers = (await chatsCollection.findOne<Chat>({_id: new ObjectId(payload.data.chatId)}))?.users;
+	let users = allUsers?.map((user: ObjectId) => user.toString()) || [];
 	
 	const data = await getWsData(payload);
 	
@@ -27,11 +28,10 @@ const handleMessageWebSocket = async (ws: WebSocket, payload: Payload, activeCli
 	
 	if (payload.data.chatId && groupResponses.includes(payload.type)) {
 		if (!users.length) {
-			if ((await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-				.map((user: ObjectId) => user.toString())) {
-				users = (await chatsCollection.findOne({_id: new ObjectId(payload.data.chatId)}))?.users
-					.map((user: ObjectId) => user.toString());
-			}
+			const allUsers = (await chatsCollection.findOne<Chat>({_id: new ObjectId(payload.data.chatId)}))?.users;
+			const usersId = allUsers?.map((user: ObjectId) => user.toString());
+			
+			if (usersId) users = usersId;
 		}
 		
 		for (const [_id, client] of activeClients.entries()) {
