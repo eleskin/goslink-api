@@ -142,8 +142,6 @@ class MessageService {
 			],
 		}).toArray();
 		
-		console.log(searchedMessages);
-		
 		const chats = [];
 		
 		for (const message of searchedMessages) {
