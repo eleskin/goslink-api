@@ -4,6 +4,7 @@ import getCollection from '../../../services/functions/getCollection';
 import Payload from '../../../types/Payload';
 import Message from '../../../types/Message';
 import Chat from '../../../types/Chat';
+import User from '../../../types/User';
 
 class ChatService {
 	private static payload: Payload | undefined;
@@ -43,9 +44,10 @@ class ChatService {
 		const usersCollection = await getCollection('users');
 		
 		if (contactId) {
-			const contact = await usersCollection.findOne({_id: new ObjectId(contactId)});
+			const user = await usersCollection.findOne<User>({_id: new ObjectId(userId)});
+			const contact = await usersCollection.findOne<User>({_id: new ObjectId(contactId)});
 			
-			let chat = await chatsCollection.findOne({
+			let chat = await chatsCollection.findOne<Chat>({
 				users: {
 					$all: [
 						new ObjectId(userId),
@@ -59,9 +61,10 @@ class ChatService {
 				const {insertedId} = await chatsCollection.insertOne({
 					users: [new ObjectId(userId), new ObjectId(contactId)],
 					group: false,
+					name: `${user?.name}|${contact?.name}`,
 				});
 				
-				chat = await chatsCollection.findOne({_id: insertedId});
+				chat = await chatsCollection.findOne<Chat>({_id: insertedId});
 			}
 			
 			return {
@@ -112,7 +115,7 @@ class ChatService {
 				chatId: chat._id,
 			}).toArray();
 			
-			const sortedMessages: Message[] = Object.values(messages.reduce((acc: {[key: string]: Message}, message) => {
+			const sortedMessages: Message[] = Object.values(messages.reduce((acc: { [key: string]: Message }, message) => {
 				acc[message.chatId.toString()] = message;
 				
 				return acc;
@@ -182,7 +185,7 @@ class ChatService {
 		
 		return {
 			chat,
-		}
+		};
 	}
 }
 
