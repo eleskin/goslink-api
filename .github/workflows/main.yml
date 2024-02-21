@@ -15,3 +15,17 @@ jobs:
       - name: Install dependencies
         run: npm install
       - run: npm run build
+
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.0
+        with:
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=a0192340@141.8.195.218 "cd domains/goslink-messenger.online/public_html/api && git pull && npm install && npm run build"
