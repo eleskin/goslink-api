@@ -30,12 +30,12 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy application
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
-            cd domains/goslink-messenger.online/public_html/api
-            git pull origin master
-            npm install
-            npm run build # Если ваше приложение требует сборки
-            pm2 restart all # или pm2 start app.js --name "your-app-name" если это новый запуск
-          EOF
+#      - name: Deploy application
+#        run: |
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
+#            cd domains/goslink-messenger.online/public_html/api
+#            git pull origin master
+#            npm install
+#            npm run build # Если ваше приложение требует сборки
+#            pm2 restart all # или pm2 start app.js --name "your-app-name" если это новый запуск
+#          EOF
