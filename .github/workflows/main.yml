@@ -8,7 +8,7 @@ on:
 
 jobs:
   call-build-job:
-    uses: .github/workflows/main.yml@main
+    uses: owner/repository/.github/workflows/main.yml@main
     secrets: inherit
 
   build:
