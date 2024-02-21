@@ -7,10 +7,6 @@ on:
     branches: [ master ]
 
 jobs:
-  call-build-job:
-    uses: owner/repository/.github/workflows/main.yml@main
-    secrets: inherit
-
   build:
     runs-on: ubuntu-latest
 
