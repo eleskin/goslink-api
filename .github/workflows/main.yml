@@ -32,5 +32,5 @@ jobs:
       - name: Deploy to server
         run: |
           echo "Starting deployment..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=a0192340@141.8.195.218 "cd domains/goslink-messenger.online/public_html/api && git pull && npm install && npm run build"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no username@141.8.195.218 "cd domains/goslink-messenger.online/public_html/api && git pull && npm install && npm run build"
           echo "Deployment completed."
