@@ -25,7 +25,10 @@ jobs:
         run: npm run build # Предполагается, что у вас есть скрипт сборки
 
       - name: Copy package.json
-        run: mkdir dist && cp -v ${{ github.workspace }}/package.json ${{ github.workspace }}/dist/
+        run: cp -v ${{ github.workspace }}/package.json ${{ github.workspace }}/dist/
+
+      - name: List contents of the dist directory
+        run: ls -al ${{ github.workspace }}/dist/
 
       - name: Archive Backend Files
         run: tar -czvf dist.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
