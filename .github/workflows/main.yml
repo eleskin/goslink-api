@@ -48,7 +48,6 @@ jobs:
             mkdir -p /var/www/html
             tar -xzf ./tmp/dist.tar.gz -C /var/www/html
             cd /var/www/html
-            # Здесь может быть команда для установки зависимостей, если это необходимо
-            npm install --production
-            # Команда для перезапуска вашего приложения, например, с использованием PM2
-#            pm2 restart all
+            pm2 start ./app.js --name "goslink-api"
+            pm2 startup
+            pm2 save
