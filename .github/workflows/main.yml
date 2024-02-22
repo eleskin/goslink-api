@@ -36,16 +36,16 @@ jobs:
           source: "dist.tar.gz"
           target: "./"
 
-#      - name: Extract Build on Server
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          port: 22
-#          script: |
-#            cd ./
-#            tar -xvzf dist.tar.gz
-#            rm dist.tar.gz
-#            npm install
-##            node ./app.js
+      - name: Extract Build on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd ./
+            tar -xvzf dist.tar.gz
+            rm dist.tar.gz
+            npm install
+#            node ./app.js
