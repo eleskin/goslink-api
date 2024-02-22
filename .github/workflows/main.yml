@@ -50,7 +50,7 @@ jobs:
             cd /var/www/html
             ls -al
             export PATH=$PATH:/root/.nvm/versions/node/v21.6.2/bin
-#            npm install
-#            pm2 start ./app.js --name "goslink-api"
-#            pm2 startup
-#            pm2 save
+            npm install
+            pm2 start ./app.js --name "goslink-api"
+            pm2 startup
+            pm2 save
