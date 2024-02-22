@@ -49,7 +49,7 @@ jobs:
             tar -xzf ./tmp/dist.tar.gz -C /var/www/html
             cd /var/www/html
             export PATH=$PATH:/root/.nvm/versions/node/v21.6.2/bin
-            npm install
+#            npm install
             pm2 start ./app.js --name "goslink-api"
             pm2 startup
             pm2 save
