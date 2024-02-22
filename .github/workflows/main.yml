@@ -21,6 +21,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Install PM2
+        run: npm install pm2 -g
+
       - name: Build
         run: npm run build # Предполагается, что у вас есть скрипт сборки
 
@@ -48,6 +51,6 @@ jobs:
             mkdir -p /var/www/html
             tar -xzf ./tmp/dist.tar.gz -C /var/www/html
             cd /var/www/html
-            /root/.nvm/versions/node/v21.6.2/bin/pm2 start ./app.js --name "goslink-api"
-            /root/.nvm/versions/node/v21.6.2/bin/pm2 startup
-            /root/.nvm/versions/node/v21.6.2/bin/pm2 save
+            pm2 start ./app.js --name "goslink-api"
+            pm2 startup
+            pm2 save
