@@ -37,4 +37,4 @@ jobs:
       - name: Deploy to Server
         run: |
           scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p ./domains/goslink-messenger.online/public_html/api && tar -xzvf /tmp/backend.tar.gz -C ./domains/goslink-messenger.online/public_html/api && rm /tmp/backend.tar.gz"
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p ./domains/goslink-messenger.online/public_html/api && tar -xzvf /tmp/backend.tar.gz -C ./domains/goslink-messenger.online/public_html/api && rm /tmp/backend.tar.gz && node app.js"
