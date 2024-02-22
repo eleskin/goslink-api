@@ -31,7 +31,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }} # Или используйте key: ${{ secrets.SSH_KEY }} для ключа SSH
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "dist.tar.gz"
           target: "./domains/goslink-messenger.online/public_html/api"
@@ -41,7 +41,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }} # Или используйте key: ${{ secrets.SSH_KEY }} для ключа SSH
+          key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
             cd /path/to/your/domains/goslink-messenger.online/public_html/api
