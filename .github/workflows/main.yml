@@ -27,13 +27,6 @@ jobs:
       - name: Archive Backend Files
         run: tar -czvf backend.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
       - name: Deploy to Server
         run: |
           scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
