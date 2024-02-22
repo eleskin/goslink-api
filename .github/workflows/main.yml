@@ -9,32 +9,28 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' # Укажите версию Node.js, используемую в вашем проекте
+          node-version: '16'
 
       - name: Install Dependencies
         run: npm install
 
       - name: Build
-        run: npm run build # Предполагается, что у вас есть скрипт сборки
-
-      - name: Archive Backend Files
-        run: tar -czvf backend.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+        run: npm run build # Если у вас есть шаг сборки
 
       - name: Deploy to Server
-        run: |
-          scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p ./domains/goslink-messenger.online/public_html/api && tar -xzvf /tmp/backend.tar.gz -C ./domains/goslink-messenger.online/public_html/api && rm /tmp/backend.tar.gz && cd ./domains/goslink-messenger.online/public_html/api && npm install && node app.js"
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ./domains/goslink-messenger.online/public_html/api
+            git pull
+            npm install
+            pm2 restart all # или любой другой способ запуска/перезапуска вашего приложения
