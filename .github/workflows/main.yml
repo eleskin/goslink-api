@@ -1,41 +1,38 @@
-name: CI/CD for Express and MongoDB
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Node.js CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master" ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: npm install
-      - run: npm run build
-
-
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up SSH
+      - uses: actions/checkout@v3
+        with:
+          path: 'backend'
+      - name: Setup Node.js for Backend
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+        working-directory: './dist'
+      - run: npm install --production
+        working-directory: './dist'
+      - name: Deploy Backend to Server
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-
-#      - name: Deploy application
-#        run: |
-#          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
-#            cd domains/goslink-messenger.online/public_html/api
-#            git pull origin master
-#            npm install
-#            npm run build # Если ваше приложение требует сборки
-#            pm2 restart all # или pm2 start app.js --name "your-app-name" если это новый запуск
-#          EOF
+          tar -czvf backend.tar.gz -C ./dist .
+          scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} 'mkdir -p ./domains/goslink-messenger.online/public_html/api && tar -xzf /tmp/backend.tar.gz -C ./domains/goslink-messenger.online/public_html/api && rm /tmp/backend.tar.gz'
