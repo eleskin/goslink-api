@@ -35,7 +35,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "./dist.tar.gz"
-          target: "./tmp"
+          target: "/tmp"
 
       - name: Extract and Restart Backend
         uses: appleboy/ssh-action@master
@@ -45,9 +45,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /
-            tar -xzf ./tmp/dist.tar.gz -C ./var/www/html
-            cd ./var/www/html
+            tar -xzf ./tmp/dist.tar.gz -C /var/www/html
+            cd /var/www/html
             # Здесь может быть команда для установки зависимостей, если это необходимо
             npm install --production
             # Команда для перезапуска вашего приложения, например, с использованием PM2
