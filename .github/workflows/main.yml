@@ -7,45 +7,34 @@ on:
     branches: [ "master" ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' # Используйте версию Node.js, необходимую для вашего проекта
+          node-version: '20' # Укажите версию Node.js, используемую в вашем проекте
 
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Project
-        run: npm run build # Замените на команду сборки вашего проекта, если она отличается
+      - name: Build
+        run: npm run build # Предполагается, что у вас есть скрипт сборки
 
-      - name: Archive Production Build
-        run: tar -czvf dist.tar.gz -C ./dist . ../package.json # Или другая директория, содержащая ваш бандл
+      - name: Archive Backend Files
+        run: tar -czvf backend.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          source: "dist.tar.gz"
-          target: "./"
-
-      - name: Extract Build on Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          script: |
-            cd ./
-            tar -xvzf dist.tar.gz
-            rm dist.tar.gz
-#            npm install
-#            node ./app.js
+        run: |
+          scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
+          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p ./ && tar -xzvf /tmp/backend.tar.gz -C ./ && rm /tmp/backend.tar.gz && npm install && node app.js"
