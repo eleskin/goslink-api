@@ -45,6 +45,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            npm install pm2 -g
             mkdir -p /var/www/html
             tar -xzf ./tmp/dist.tar.gz -C /var/www/html
             cd /var/www/html
