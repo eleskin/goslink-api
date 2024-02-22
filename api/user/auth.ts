@@ -97,7 +97,7 @@ router.post('/login', async (req, res) => {
 			message: 'There is no user with this email address',
 		});
 	} else {
-		bcryptjs.compare(password, user.password, (err, result) => {
+		bcrypt.compare(password, user.password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
 				const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
