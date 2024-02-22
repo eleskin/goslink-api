@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "tsc && copy package.json dist\\",
     "dev": "nodemon"
   },
   "dependencies": {
