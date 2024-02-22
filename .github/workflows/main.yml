@@ -24,7 +24,7 @@ jobs:
         run: npm run build # Замените на команду сборки вашего проекта, если она отличается
 
       - name: Archive Production Build
-        run: tar -czvf dist.tar.gz ./dist # Или другая директория, содержащая ваш бандл
+        run: tar -czvf dist.tar.gz ./dist . # Или другая директория, содержащая ваш бандл
 
       - name: Deploy to Server
         uses: appleboy/scp-action@master
