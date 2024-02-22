@@ -25,9 +25,29 @@ jobs:
         run: npm run build # Предполагается, что у вас есть скрипт сборки
 
       - name: Archive Backend Files
-        run: tar -czvf backend.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
+        run: tar -czvf dist.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
 
       - name: Deploy to Server
-        run: |
-          scp backend.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp
-          ssh ${{ secrets.USERNAME }}@${{ secrets.HOST }} "mkdir -p ./ && tar -xzvf /tmp/backend.tar.gz -C ./ && rm /tmp/backend.tar.gz && npm install && node app.js"
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: "./dist.tar.gz"
+          target: "./tmp"
+
+      - name: Extract and Restart Backend
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            tar -xzf ./tmp/dist.tar.gz -C ./
+            cd ./
+            # Здесь может быть команда для установки зависимостей, если это необходимо
+            npm install --production
+            # Команда для перезапуска вашего приложения, например, с использованием PM2
+            pm2 restart all
