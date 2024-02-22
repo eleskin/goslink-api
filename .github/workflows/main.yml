@@ -44,7 +44,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /path/to/your/domains/goslink-messenger.online/public_html/api
+            cd ./domains/goslink-messenger.online/public_html/api
             tar -xvzf dist.tar.gz
             rm dist.tar.gz
             npm install --production # Установите зависимости в production режиме
