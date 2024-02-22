@@ -45,10 +45,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            npm install pm2 -g
             mkdir -p /var/www/html
             tar -xzf ./tmp/dist.tar.gz -C /var/www/html
             cd /var/www/html
-            pm2 start ./app.js --name "goslink-api"
-            pm2 startup
-            pm2 save
+            /root/.nvm/versions/node/v21.6.2/bin/pm2 start ./app.js --name "goslink-api"
+            /root/.nvm/versions/node/v21.6.2/bin/pm2 startup
+            /root/.nvm/versions/node/v21.6.2/bin/pm2 save
