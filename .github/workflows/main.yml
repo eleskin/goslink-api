@@ -25,7 +25,7 @@ jobs:
         run: npm run build # Предполагается, что у вас есть скрипт сборки
 
       - name: Copy package.json
-        run: cp ./package.json ./dist/
+        run: cp ./package.json ./dist
 
       - name: Archive Backend Files
         run: tar -czvf dist.tar.gz -C ./dist . # Предполагается, что сборка находится в директории ./dist
