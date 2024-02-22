@@ -6,6 +6,42 @@ on:
   pull_request:
     branches: [ "master" ]
 
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t goslink-api:latest .
+
+      - name: Save Docker image
+        run: docker save goslink-api:latest > goslink-api.tar
+
+      - name: Copy Docker image to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          source: "goslink-api.tar"
+          target: "./domains/goslink-messenger.online/public_html/api"
+
+      - name: Load Docker image and run container
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            docker load < ./domains/goslink-messenger.online/public_html/api/goslink-api.tar
+            docker run -d -p 3000:3000 --name goslink-api goslink-api:latest
+
+
+
+
 #jobs:
 #  deploy:
 #    runs-on: ubuntu-latest
