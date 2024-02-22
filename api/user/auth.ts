@@ -1,5 +1,5 @@
 import express from 'express';
-import bcryptjs from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import authenticateJWT from '../../services/functions/authenticateJWT';
 import 'dotenv/config';
@@ -65,7 +65,7 @@ router.post('/register', async (req, res) => {
 	const email: string = req.body.email;
 	const password: string = req.body.password;
 	
-	bcryptjs.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
+	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
 		const usersCollection = await getCollection('users');
 		const user = await usersCollection.findOne<User>({email});
 		
