@@ -47,5 +47,5 @@ jobs:
             cd ./
             tar -xvzf dist.tar.gz
             rm dist.tar.gz
-#            npm install
+            npm install
 #            node ./app.js
