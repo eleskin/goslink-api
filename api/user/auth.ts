@@ -11,6 +11,12 @@ const router = express.Router();
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET ?? '';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET ?? '';
 
+router.get('/', (req, res) => {
+	res.send({
+		text: 'hello'
+	})
+})
+
 router.post('/', (req, res) => {
 	const refreshToken: string = req.body.refreshToken;
 	const accessToken = req.headers.authorization;
