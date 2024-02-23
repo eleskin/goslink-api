@@ -36,14 +36,14 @@ router.post('/', (req, res) => {
 			}
 			
 			const usersCollection = await getCollection('users');
-			const user = await usersCollection.findOne<User>({email: tokenUser.email});
+			const user = await usersCollection.findOne<User>({username: tokenUser.username});
 			
 			if (user?.refreshToken !== refreshToken.split(' ')[1]) {
 				return res.status(403).send();
 			}
 			
 			const accessToken = jwt.sign(
-				{email: tokenUser.email},
+				{username: tokenUser.username},
 				ACCESS_TOKEN_SECRET,
 				{expiresIn: '1h'},
 			);
@@ -54,7 +54,6 @@ router.post('/', (req, res) => {
 					_id: user._id,
 					name: user.name,
 					username: user.username,
-					email: user.email,
 				},
 			});
 		});
@@ -62,20 +61,20 @@ router.post('/', (req, res) => {
 });
 
 // router.post('/register', async (req, res) => {
-// 	const email: string = req.body.email;
+// 	const username: string = req.body.username;
 // 	const password: string = req.body.password;
 //
 // 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
 // 		const usersCollection = await getCollection('users');
-// 		const user = await usersCollection.findOne<User>({email});
+// 		const user = await usersCollection.findOne<User>({username});
 //
 // 		if (user) {
 // 			return res.status(400).send({
-// 				message: 'A user with this email address already exists',
+// 				message: 'A user with this username already exists',
 // 			});
 // 		} else {
-// 			const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-// 			const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+// 			const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+// 			const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
 //
 // 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
 //
@@ -85,24 +84,24 @@ router.post('/', (req, res) => {
 // });
 
 router.post('/login', async (req, res) => {
-	const email: string = req.body.email;
+	const username: string = req.body.username;
 	const password: string = req.body.password;
 	const remember: string = req.body.remember;
 	
 	const usersCollection = await getCollection('users');
-	const user = await usersCollection.findOne<User>({email});
+	const user = await usersCollection.findOne<User>({username});
 	
 	if (!user) {
 		return res.status(400).send({
-			message: 'There is no user with this email address',
+			message: 'There is no user with this username',
 		});
 	} else {
 		bcrypt.compare(password, user.password, (err, result) => {
 			if (result) {
-				const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-				const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
+				const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+				const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
 				
-				usersCollection.replaceOne({email}, {...user, refreshToken});
+				usersCollection.replaceOne({username}, {...user, refreshToken});
 				
 				return res.status(200).send({
 					accessToken,
@@ -130,9 +129,9 @@ router.post('/logout', authenticateJWT, (req, res) => {
 		}
 		
 		const usersCollection = await getCollection('users');
-		const user = await usersCollection.findOne<User>({email: tokenUser.email});
+		const user = await usersCollection.findOne<User>({username: tokenUser.username});
 
-		await usersCollection.replaceOne({email: tokenUser.email}, {...user, refreshToken: null});
+		await usersCollection.replaceOne({username: tokenUser.username}, {...user, refreshToken: null});
 
 		return res.status(200).send('Logout successful');
 	});
