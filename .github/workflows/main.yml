@@ -54,3 +54,4 @@ jobs:
             pm2 start ./app.js --name "goslink-api"
             pm2 startup
             pm2 save
+            pm2 restart goslink-api
