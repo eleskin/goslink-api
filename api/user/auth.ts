@@ -61,28 +61,28 @@ router.post('/', (req, res) => {
 	});
 });
 
-router.post('/register', async (req, res) => {
-	const email: string = req.body.email;
-	const password: string = req.body.password;
-	
-	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
-		const usersCollection = await getCollection('users');
-		const user = await usersCollection.findOne<User>({email});
-		
-		if (user) {
-			return res.status(400).send({
-				message: 'A user with this email address already exists',
-			});
-		} else {
-			const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-			const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
-			
-			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
-			
-			return res.status(201).send({accessToken, refreshToken});
-		}
-	});
-});
+// router.post('/register', async (req, res) => {
+// 	const email: string = req.body.email;
+// 	const password: string = req.body.password;
+//
+// 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
+// 		const usersCollection = await getCollection('users');
+// 		const user = await usersCollection.findOne<User>({email});
+//
+// 		if (user) {
+// 			return res.status(400).send({
+// 				message: 'A user with this email address already exists',
+// 			});
+// 		} else {
+// 			const accessToken = jwt.sign({email}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+// 			const refreshToken = jwt.sign({email}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+//
+// 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
+//
+// 			return res.status(201).send({accessToken, refreshToken});
+// 		}
+// 	});
+// });
 
 router.post('/login', async (req, res) => {
 	const email: string = req.body.email;
