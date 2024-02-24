@@ -60,28 +60,75 @@ router.post('/', (req, res) => {
 	});
 });
 
-// router.post('/register', async (req, res) => {
-// 	const username: string = req.body.username;
-// 	const password: string = req.body.password;
-//
-// 	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
-// 		const usersCollection = await getCollection('users');
-// 		const user = await usersCollection.findOne<User>({username});
-//
-// 		if (user) {
-// 			return res.status(400).send({
-// 				message: 'A user with this username already exists',
-// 			});
-// 		} else {
-// 			const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-// 			const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
-//
-// 			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
-//
-// 			return res.status(201).send({accessToken, refreshToken});
-// 		}
-// 	});
-// });
+router.post('/register', async (req, res) => {
+	const username: string = req.body.username;
+	const password: string = req.body.password;
+
+	bcrypt.hash(password, Number(process.env.SALT_ROUNDS), async (err, hash) => {
+		const usersCollection = await getCollection('users');
+		const user = await usersCollection.findOne<User>({username});
+
+		if (user) {
+			return res.status(400).send({
+				message: 'A user with this username already exists',
+			});
+		} else {
+			const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+			const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, {expiresIn: '1d'});
+
+			await usersCollection.insertOne({...req.body, password: hash, refreshToken});
+
+			return res.status(201).send({accessToken, refreshToken});
+		}
+	});
+});
+
+router.get('/login', async (req, res) => {
+	const username = String(req.query.username);
+	
+	const usersCollection = await getCollection('users');
+	const user = await usersCollection.findOne<User>({username});
+	
+	console.log(user);
+	
+	if (user) {
+		return res.status(200).send({
+			name: user.name,
+			username: user.username,
+		});
+	} else {
+		return res.status(404).send();
+	}
+	// const password: string = req.body.password;
+	// const remember: string = req.body.remember;
+	//
+	// const usersCollection = await getCollection('users');
+	// const user = await usersCollection.findOne<User>({username});
+	//
+	// if (!user) {
+	// 	return res.status(400).send({
+	// 		message: 'There is no user with this username',
+	// 	});
+	// } else {
+	// 	bcrypt.compare(password, user.password, (err, result) => {
+	// 		if (result) {
+	// 			const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+	// 			const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
+	//
+	// 			usersCollection.replaceOne({username}, {...user, refreshToken});
+	//
+	// 			return res.status(200).send({
+	// 				accessToken,
+	// 				refreshToken,
+	// 			});
+	// 		} else {
+	// 			return res.status(400).send({
+	// 				message: 'Invalid password',
+	// 			});
+	// 		}
+	// 	});
+	// }
+});
 
 router.post('/login', async (req, res) => {
 	const username: string = req.body.username;
