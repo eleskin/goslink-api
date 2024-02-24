@@ -89,8 +89,6 @@ router.get('/login', async (req, res) => {
 	const usersCollection = await getCollection('users');
 	const user = await usersCollection.findOne<User>({username});
 	
-	console.log(user);
-	
 	if (user) {
 		return res.status(200).send({
 			name: user.name,
@@ -99,35 +97,6 @@ router.get('/login', async (req, res) => {
 	} else {
 		return res.status(404).send();
 	}
-	// const password: string = req.body.password;
-	// const remember: string = req.body.remember;
-	//
-	// const usersCollection = await getCollection('users');
-	// const user = await usersCollection.findOne<User>({username});
-	//
-	// if (!user) {
-	// 	return res.status(400).send({
-	// 		message: 'There is no user with this username',
-	// 	});
-	// } else {
-	// 	bcrypt.compare(password, user.password, (err, result) => {
-	// 		if (result) {
-	// 			const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-	// 			const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
-	//
-	// 			usersCollection.replaceOne({username}, {...user, refreshToken});
-	//
-	// 			return res.status(200).send({
-	// 				accessToken,
-	// 				refreshToken,
-	// 			});
-	// 		} else {
-	// 			return res.status(400).send({
-	// 				message: 'Invalid password',
-	// 			});
-	// 		}
-	// 	});
-	// }
 });
 
 router.post('/login', async (req, res) => {
