@@ -1,13 +1,21 @@
 import express from 'express';
-import http from 'http';
+import https from 'https';
 import WebSocket from 'ws';
 import getIdFromUrl from '../../services/functions/getIdFromUrl';
 import Payload from '../../types/Payload';
 import handleMessageWebSocket from './handlers/handleMessageWebSocket';
+import * as fs from 'fs';
 
 const app = express();
 
-const server = http.createServer(app).listen(8000);
+const server = https.createServer({
+	cert: fs.readFileSync(process.env.CERT_PATH ?? ''),
+	key: fs.readFileSync(process.env.KEY_PATH ?? ''),
+}, (req, res) => {
+	console.log("Request");
+	res.end("Nice");
+}).listen(8000);
+
 const wss = new WebSocket.Server({server});
 
 const activeClients: Map<string, WebSocket> = new Map();
