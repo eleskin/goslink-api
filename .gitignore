@@ -1,3 +1,5 @@
 node_modules
 .env
 dist
+api/websocket/cert.pem
+api/websocket/key.pem
