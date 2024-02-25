@@ -32,12 +32,16 @@ class UserService {
 	}
 	
 	private static async searchUser() {
+		const userId = this.payload?.data.userId;
 		const contactUsername = this.payload?.data.contactUsername ?? '';
 		
 		const usersCollection = await getCollection('users');
 		
 		return {
-			user: await usersCollection.findOne({username: contactUsername}),
+			user: await usersCollection.findOne({
+				username: contactUsername,
+				_id: {$ne: new ObjectId(userId)}
+			}),
 		} ?? null;
 	}
 	
