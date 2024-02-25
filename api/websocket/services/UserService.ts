@@ -39,8 +39,10 @@ class UserService {
 		
 		return {
 			user: await usersCollection.findOne({
-				username: contactUsername,
-				_id: {$ne: new ObjectId(userId)}
+				$and: [
+					{username: contactUsername},
+					{_id: {$ne: new ObjectId(userId)}},
+				],
 			}),
 		} ?? null;
 	}
