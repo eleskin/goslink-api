@@ -102,7 +102,6 @@ router.get('/login', async (req, res) => {
 router.post('/login', async (req, res) => {
 	const username: string = req.body.username;
 	const password: string = req.body.password;
-	const remember: string = req.body.remember;
 	
 	const usersCollection = await getCollection('users');
 	const user = await usersCollection.findOne<User>({username});
@@ -115,7 +114,7 @@ router.post('/login', async (req, res) => {
 		bcrypt.compare(password, user.password, (err, result) => {
 			if (result) {
 				const accessToken = jwt.sign({username}, ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-				const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, !remember ? {expiresIn: '1d'} : {});
+				const refreshToken = jwt.sign({username}, REFRESH_TOKEN_SECRET, {});
 				
 				usersCollection.replaceOne({username}, {...user, refreshToken});
 				
